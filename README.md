@@ -2,6 +2,12 @@
 
 源码与更新：[moaiCode/ai-paper-copilot](https://github.com/moaiCode/ai-paper-copilot)。
 
+**用 AI 安装：**把下面一句发给能操作本机的 Agent，它会先检查环境、询问关键选择，再逐步执行和验证：
+
+> 请按 https://github.com/moaiCode/ai-paper-copilot/blob/main/INSTALL.md 帮我安装并配置这个科研工作流。
+
+也可以直接把 [INSTALL.md](INSTALL.md) 文件交给 AI 并说“帮我安装”。已有正式库时可说“继续安装”，提供该库路径；安装向导读取进度后接续。登录、Token 和系统确认可能需要本人操作。
+
 这是一套科研工作流技能与部署模板：Zotero保存题录/PDF/标注，Obsidian保存理解和项目，Codex协调阅读、代码、实验与LaTeX写作。AI先形成完整中文笔记，人核关键主张并保留自己的思考。
 
 **本目录中的 `ResearchVault/`仅是模板和测试目录，不是正式科研库。**先在[安装与首次配置](00-安装与首次配置.md)中选择自己的正式 `VAULT_ROOT`，复制模板并配置各工具；不要把软件持续导出绑定到套件里的模板，也不依赖模板自带skill链接。
@@ -19,6 +25,9 @@ flowchart LR
 
 | 入口 | 内容 |
 |---|---|
+| [AI 安装入口](INSTALL.md) | AI 检查环境、分轮提问、准备正式库、配置与验证；用户无须复制长提示词 |
+| [llms.txt](llms.txt) | 给支持 `llms.txt` 的 Agent 的精简文档索引与安全边界 |
+| [安装引导 skill](skills/ai-paper-setup/SKILL.md) | 安装、已有库接入与续装流程；默认预览的本地文件准备脚本 |
 | [00 · 安装与首次配置](00-安装与首次配置.md) | 选择正式库、安全复制、逐字段配置、插件/MCP/BBT/bridge、迁移与撤销 |
 | [01 · 日常操作手册](01-科研AI工作流操作手册.md) | 部署后从探索、阅读、综合推进到实验、写作和修改 |
 | [03 · Skill使用说明](03-ai-paper-copilot使用说明书.md) | 自然语言、脚本、笔记字段、补读更新和排错 |
@@ -29,6 +38,8 @@ flowchart LR
 | [验收记录](验收记录.md) | 程序检查、历史能力验证和模板恢复的实际结果 |
 
 ## 开始使用
+
+推荐先使用上述 AI 安装入口。希望自行操作时，沿用下面的详细手册流程：
 
 1. 阅读00，编辑正式库绝对路径；新目标必须不存在，已有库按增量接入，不覆盖合并整库。
 2. 复制模板，安装项目级skill真实副本和独立Python依赖；修改正式库的根AGENTS及profile。
@@ -45,12 +56,11 @@ flowchart LR
 # 当前目录是套件根；这里的ResearchVault仅作为检查输入。
 python3 -m venv .venv
 .venv/bin/python -m pip install -r skills/ai-paper-copilot/requirements.txt
-.venv/bin/python skills/ai-paper-copilot/scripts/doctor.py --vault ResearchVault --json
 .venv/bin/python skills/ai-paper-copilot/scripts/validate_vault.py --vault ResearchVault --json
 .venv/bin/python -m unittest discover -s skills/ai-paper-copilot/tests -v
 ```
 
-空模板的empty_vault与needs_setup是可解释结果，不能为了让报告全绿向模板填真实文献或绑定插件。科研结论、图表正确性和人工认可都需另行检查。
+上面只读本地文件，不连接 Zotero、MinerU 或 Codex。空模板的 `empty_vault` 与 `needs_setup` 是可解释结果，不能为了让报告全绿向模板填真实文献或绑定插件。用户明确允许检查真实环境后，再对正式库运行 `doctor.py`；它会读取本机 Zotero 偏好、检查 Codex 登录并探测本地 API。科研结论、图表正确性和人工认可都需另行检查。
 
 正式数据的Git记录与PDF/Zotero备份分别安排。Git commit信息用中文，新增代码写清晰中文注释；不把密钥、登录态或大体积环境加入版本库。
 

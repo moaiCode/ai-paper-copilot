@@ -41,6 +41,32 @@ jobs:
       - name: 运行隔离单元测试
         run: python -m unittest discover -s skills/ai-paper-copilot/tests -v
 
+      - name: 检查两个 skill 的入口元信息
+        shell: bash
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          # 安装向导和日常科研技能均需可独立发现，安全解析器也拒绝重复 YAML 键。
+          sys.path.insert(0, "skills/ai-paper-copilot/scripts")
+          from vault_utils import read_note
+
+          for name in ("ai-paper-copilot", "ai-paper-setup"):
+              entry = Path("skills") / name / "SKILL.md"
+              metadata, _, _ = read_note(entry.read_text(encoding="utf-8"))
+              if metadata.get("name") != name:
+                  raise SystemExit("skill 名称与安装目录不一致：" + name)
+              description = metadata.get("description")
+              if not isinstance(description, str) or not description.strip():
+                  raise SystemExit("skill 缺少有效 description：" + name)
+          if not Path("INSTALL.md").is_file():
+              raise SystemExit("缺少可直接交给 AI 的安装入口")
+          if not Path("llms.txt").is_file():
+              raise SystemExit("缺少面向支持 llms.txt 的 Agent 文档入口")
+          print("两个 skill 与安装入口可用")
+          PY
+
       - name: 检查全部模板的 YAML 与双份一致性
         shell: bash
         run: |

@@ -1,0 +1,4 @@
+interface:
+  display_name: "科研工作流安装向导"
+  short_description: "通过问答安装科研库、skill 与相关工具，记录进度并验证实际配置，支持接入已有库和继续安装"
+  default_prompt: "使用 $ai-paper-setup 检查环境，询问缺少的关键选择，分步安装并验证科研工作流。"

@@ -1,5 +1,7 @@
 # 工具接入与首次使用
 
+用户希望安装、接入已有库或继续部署时，优先交给同项目的 `ai-paper-setup` 安装 skill；尚未取得它时读取[仓库安装入口](https://github.com/moaiCode/ai-paper-copilot/blob/main/INSTALL.md)。入口负责关键问答与安装进度，本页提供研究工作流的工具接入依据。讨论或维护套件时不因此连接真实资料库。
+
 这套工作流以单台 Mac 上的个人 AI/ML 研究为默认场景。Zotero 保存题录、原 PDF 和阅读批注；Obsidian 保存 Markdown 知识与项目；主 Codex 会话以 Vault 为工作区，协调检索、整理、代码和写作。不要让多个工具同时覆盖同一份笔记。
 
 ## 主路径与可选组件

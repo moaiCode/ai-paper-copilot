@@ -1,0 +1,23 @@
+# ai-paper-copilot
+
+这是一个可由 AI Agent 逐步安装的中文 AI 科研工作流套件，组合 Zotero、Obsidian、Codex、LLM-for-Zotero、MinerU 和 Better BibTeX。
+
+## Agent 入口
+
+- 安装、接入已有 Vault 或继续配置：读取 `INSTALL.md`，然后读取 `skills/ai-paper-setup/SKILL.md`。
+- 日常论文阅读、知识综合、实验记录和 LaTeX 写作：读取 `skills/ai-paper-copilot/SKILL.md`。
+- 仓库维护约定：读取根目录 `AGENTS.md`。
+- 完整安装依据：读取 `00-安装与首次配置.md`。
+
+## 重要边界
+
+- `ResearchVault/` 永远只是未绑定的初始模板，不是用户的正式库。
+- 安装向导会先提问正式 Vault 的绝对路径、MinerU 后端和安装范围。
+- `setup_vault.py` 默认只预览；`--apply` 只准备本地文件，不安装软件、不读取真实 Zotero、不上传 PDF，也不接收 Token。
+- 真实插件、登录、MCP、MinerU 和论文样本必须逐项检查，不能因为文件已复制就宣称全部安装完成。
+
+## 公开资源
+
+- 主安装入口：`https://github.com/moaiCode/ai-paper-copilot/blob/main/INSTALL.md`
+- 主 skill：`https://github.com/moaiCode/ai-paper-copilot/tree/main/skills/ai-paper-copilot`
+- 安装 skill：`https://github.com/moaiCode/ai-paper-copilot/tree/main/skills/ai-paper-setup`
