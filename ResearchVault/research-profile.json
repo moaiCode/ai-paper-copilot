@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "research": {
+    "field": "AI/ML",
+    "focus": [],
+    "stage": "exploration",
+    "note_language": "zh-CN",
+    "writing_format": "latex"
+  },
+  "zotero": {
+    "api_base_url": "http://127.0.0.1:23119/api",
+    "library_scope": "users/0",
+    "data_dir": null
+  },
+  "mineru": {
+    "backend": null,
+    "local_url": "http://127.0.0.1:8000",
+    "automatic_parse": false,
+    "upload_policy": "ask_before_upload"
+  },
+  "paths": {
+    "knowledge": "01knowledge",
+    "notes": "02vault",
+    "fulltext": "03fulltext",
+    "projects": "04projects",
+    "writing": "05writing",
+    "inbox": "06inbox",
+    "templates": "模板"
+  }
+}

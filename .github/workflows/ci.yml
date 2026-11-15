@@ -1,0 +1,114 @@
+name: 模板与隔离测试
+
+# CI 只检查公开套件和合成测试资料，不读取用户账号、Zotero 库或云解析凭据。
+"on":
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUTF8: "1"
+    steps:
+      # 2026-11-16 核验 GitHub 官方稳定版本，并固定完整提交，避免浮动 tag 漂移。
+      # https://github.com/actions/checkout/releases/tag/v7.0.1
+      - name: 检出仓库
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # https://github.com/actions/setup-python/releases/tag/v7.1.0
+      - name: 准备 Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装脚本依赖
+        run: python -m pip install -r skills/ai-paper-copilot/requirements.txt
+
+      - name: 运行隔离单元测试
+        run: python -m unittest discover -s skills/ai-paper-copilot/tests -v
+
+      - name: 检查全部模板的 YAML 与双份一致性
+        shell: bash
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+
+          # 复用安全 YAML 与重复键检查，不对仍含占位符的模板运行成品笔记校验。
+          skill = Path("skills/ai-paper-copilot")
+          sys.path.insert(0, str(skill / "scripts"))
+          from vault_utils import note_regions, read_note
+
+          source = skill / "templates"
+          copied = Path("ResearchVault/模板")
+          source_files = {path.relative_to(source) for path in source.rglob("*.md")}
+          copied_files = {path.relative_to(copied) for path in copied.rglob("*.md")}
+          if not source_files or source_files != copied_files:
+              raise SystemExit("模板源与 Vault 模板的文件集合不一致，或模板集合为空")
+
+          for relative in sorted(source_files):
+              original = source / relative
+              target = copied / relative
+              if original.read_bytes() != target.read_bytes():
+                  raise SystemExit("模板副本与源文件内容不同：" + str(relative))
+              metadata, body, _ = read_note(original.read_text(encoding="utf-8"))
+              for field in ("type", "title"):
+                  if not isinstance(metadata.get(field), str) or not metadata[field].strip():
+                      raise SystemExit("模板缺少有效字段 " + field + "：" + str(relative))
+              # 含分区标记的模板必须同时拥有完整且互不交叉的 AI/HUMAN 区。
+              if "<!-- AI:" in body or "<!-- HUMAN:" in body:
+                  note_regions(body)
+          print("全部模板 YAML 结构与双份内容一致；模板数量：", len(source_files))
+          PY
+
+      - name: 检查初始 Vault 保持未绑定和空库状态
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          # 此处只读取通用配置，不执行 doctor，不探测 Zotero/MinerU 等真实服务。
+          vault = Path("ResearchVault")
+          profile = json.loads((vault / "research-profile.json").read_text(encoding="utf-8"))
+          if profile.get("zotero", {}).get("data_dir") is not None:
+              raise SystemExit("初始模板绑定了本机 Zotero 数据目录")
+          if profile.get("zotero", {}).get("library_scope") != "users/0":
+              raise SystemExit("初始模板应使用通用的 users/0，而非真实个人或群组身份")
+          if profile.get("mineru", {}).get("backend") is not None:
+              raise SystemExit("初始模板不得预选 MinerU 后端")
+          if profile.get("mineru", {}).get("automatic_parse") is not False:
+              raise SystemExit("初始模板必须关闭自动解析")
+
+          # 调用已有只读检查器；空库成功只代表模板结构可用，不代表工具链已验证。
+          command = [sys.executable, "skills/ai-paper-copilot/scripts/validate_vault.py",
+                     "--vault", str(vault), "--json"]
+          result = subprocess.run(command, capture_output=True, text=True, check=False)
+          if result.returncode != 0:
+              print(result.stdout)
+              print(result.stderr, file=sys.stderr)
+              raise SystemExit(result.returncode)
+          report = json.loads(result.stdout)
+          expected = {"status": "empty_vault", "notes": 0, "errors": 0,
+                      "content_verified": False, "scientific_quality_verified": False}
+          for field, value in expected.items():
+              if report.get(field) != value:
+                  raise SystemExit("初始模板校验结果不符合约定：" + field)
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY

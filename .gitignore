@@ -1,0 +1,14 @@
+# 本地依赖、Python 缓存与操作系统临时文件不进入版本历史。
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.pytest_cache/
+tmp/
+# 本机诊断和演练验收输出可含绝对路径，公开仓库只提交通用文档与测试。
+validation/
+.local/
+# API 凭据应放工具设置或环境变量；不提交本地秘密文件。
+.env
+.env.*
+!.env.example

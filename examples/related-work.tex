@@ -1,0 +1,34 @@
+% 本稿只演示引用与研究计划的衔接，未执行TeX编译，不是正式投稿稿件。
+% 三个引用键在同目录references.bib中存在；BERT和Longformer仅核对元数据与摘要。
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\title{Attention Connectivity: A Reading and Study Proposal}
+\author{Workflow Example}
+\date{}
+\begin{document}
+\maketitle
+
+\section{Related Work and Evidence Boundary}
+The Transformer organizes sequence transduction around attention~\cite{vaswani2017attention}.
+BERT studies bidirectional language representation pre-training~\cite{devlin2018bert},
+whereas Longformer addresses long documents using local and global attention~\cite{beltagy2020longformer}.
+These are different research settings; their reported task scores do not form a common ranking.
+Our reading of the latter two sources is limited to their abstracts.
+Their full methodological and evaluation details remain to be checked.
+
+\section{Proposed Study}
+% 使用将来时和提案措辞，不把未执行的实验写成已经观察到的结论。
+We propose a controlled key--value retrieval study with dense, windowed,
+and windowed-plus-global connectivity under a fixed small-model budget.
+We will report accuracy by sequence length and retrieval distance.
+Runtime and memory measurements will be interpreted according to the actual
+implementation; a dense masked kernel will not be described as sparse acceleration.
+
+\section{Current Status}
+No implementation, training, timing measurements, or reproduction has been completed.
+Consequently, we report no numerical results or performance improvements.
+The experiment specification and empty result schema are maintained in the accompanying Chinese note.
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
