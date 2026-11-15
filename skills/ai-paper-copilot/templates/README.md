@@ -27,6 +27,9 @@
 | `source_notes` | 支撑页面判断的笔记链接或 citekey 列表；每项应能追溯到具体材料。 |
 | `related` | 相关主题、概念、方法或项目链接；关系应在正文说明，不凭链接本身推断关联。 |
 | `relation_type` | 关系页的证据角色：`direct`、`mechanism`、`conditional`、`contextual` 或 `related`；没有证据时保持 `related`。 |
+| `research_questions` | 项目状态页关联的研究问题卡列表；只列实际存在的页面。 |
+| `stage` | 项目所处阶段，如 `exploration`、`validation`、`writing`；与实验结果状态分开。 |
+| `venue` | 投稿检查对应的目标期刊、会议或其他 venue；空值表示尚未选择。 |
 | `library_scope` | Zotero 库身份，如 `users/0` 或 `groups/<ID>`；与 `zotero_key` 共同确定条目。 |
 | `zotero_key` | Zotero 条目 key，必须是 8 位大写字母/数字；未知时临时笔记可留空。 |
 | `pdf_key` | 具体 PDF 附件 key；同一条目有多个附件时必须区分。 |
