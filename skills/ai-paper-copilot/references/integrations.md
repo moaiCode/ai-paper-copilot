@@ -12,7 +12,7 @@
 |---|---|
 | Zotero 与浏览器 Zotero Connector | 收集题录与附件、阅读和批注；确认能保存一条真实文献并打开附件。[官方 Connector](https://www.zotero.org/download/connectors) |
 | Better BibTeX for Zotero（BBT） | 稳定 citekey 与 `.bib` 导出；对已用于写作的键固定后再导出。[引用键](https://retorque.re/zotero-better-bibtex/citing/)、[自动导出](https://retorque.re/zotero-better-bibtex/exporting/auto/) |
-| llm-for-zotero | Zotero 内辅助阅读与 MinerU 转换。主 Agent 仍在 Vault 中统筹，不要求每次从插件启动另一套 Agent。[项目与安装说明](https://github.com/yilewang/llm-for-zotero) |
+| llm-for-zotero | Zotero 内辅助阅读与 MinerU 转换；Codex App Server 是可选运行时，不是插件基础依赖。主 Agent 仍在 Vault 中统筹，不要求每次从插件启动另一套 Agent。[项目与安装说明](https://github.com/yilewang/llm-for-zotero) |
 | Obsidian | 打开 Vault，阅读、复核和编辑知识；本流程不依赖 Obsidian AI 插件。核心 Templates 可用于手工建页。 |
 | Codex 桌面或 CLI | 读取 Vault 根规则、调用本地技能和脚本；桌面将 Vault 设为主文件夹，CLI 使用 `codex --cd "/实际/Vault路径"`。[官方项目说明](https://learn.chatgpt.com/docs/projects#use-local-projects-for-folders-and-codebases) |
 
@@ -25,6 +25,8 @@
 - **科研检索服务**：可用浏览器检索和出版方/预印本来源；已连接的文献检索工具可补充发现。说明实际覆盖来源，不把某个付费服务绑定为必需组件。
 
 ## 第一次配置顺序
+
+LLM-for-Zotero 可以使用标准模型提供商、本地 OpenAI-compatible 模型、WebChat、Codex App Server 或 Claude Code 等运行时。**插件不需要 Codex 才能安装、打开 PDF 或使用 MinerU。**只有在你希望直接在 Zotero 窗口里复用本机 Codex 登录和模型进行对话时，才启用 Codex App Server。主 Codex 会话仍以正式 Vault 为工作目录；不使用 Zotero 内对话时，关闭插件内 Codex 即可。
 
 脚本命令中的 `python3` 指已安装本技能 `requirements.txt` 的解释器；优先使用套件准备的 `.venv/bin/python`，不要修改系统 Python。尚未准备依赖时先按安装手册建立虚拟环境，再运行检查。
 

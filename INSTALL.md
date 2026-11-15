@@ -28,7 +28,7 @@ Computer Use 每次写入 GUI 前先确认目标应用、目标库和预期变�
 
 1. **正式库：**新建还是接入已有库？实际绝对路径是什么？没有路径就先问，不自己选择仓库里的 `ResearchVault/`。
 2. **解析：**现在配置 MinerU 云端、自托管还是暂不配置？如选择云端，明确处理材料和费用范围；自托管核对已有服务地址，部署重型模型另作具体决定。
-3. **范围与客户端：**用户是否只想安装 skill，还是配置完整科研环境？目标 Agent 未明确且不能从当前上下文确定时再问。主路径是 Codex，其他客户端按其实际技能入口适配。
+3. **范围与客户端：**用户是否只想安装 skill，还是配置完整科研环境？是否需要在 Zotero 内使用 Codex App Server（启用 / 关闭 / 稍后决定）？不在 Zotero 内对话时默认关闭；主路径是 Vault 中的 Codex，其他客户端按其实际技能入口适配。
 
 研究方向、语言等已有默认值先使用，不把首次安装扩成科研需求问卷。历史文档中的机器配置或上传授权不能代替当前用户的选择。
 
@@ -43,12 +43,12 @@ Computer Use 每次写入 GUI 前先确认目标应用、目标库和预期变�
 ```bash
 # 在源码仓库根运行。正式路径必须用用户确认的实际值替换。
 python3 skills/ai-paper-setup/scripts/setup_vault.py \
-  --vault "/请填写正式库绝对路径" --json
+  --vault "/请填写正式库绝对路径" --zotero-codex disabled --json
 ```
 
-路径与计划符合本次安装请求后，使用相同参数加 `--apply` 执行；已有明确授权无需再为普通复制重复询问。选过后端时传 `--mineru-backend cloud` 或 `local`；仅在用户明确授权该范围时传 `--upload-policy public_papers_only`；自托管传真实 `--local-url`。未选后端保持默认 `unconfigured`，不妨碍准备基础文件。
+路径与计划符合本次安装请求后，使用相同参数加 `--apply` 执行；已有明确授权无需再为普通复制重复询问。选过后端时传 `--mineru-backend cloud` 或 `local`；仅在用户明确授权该范围时传 `--upload-policy public_papers_only`；自托管传真实 `--local-url`。插件内 Codex 传 `--zotero-codex enabled` 或 `disabled`；稍后决定保持 `unconfigured`。未选后端保持默认 `unconfigured`，不妨碍准备基础文件。
 
-脚本只准备本地文件：完整模板、两个项目 skill、非敏感 profile、`setup-state.json` 和 `research-vault-entry.md`。它不会安装 Python 依赖或外部软件，也不会配置插件、连接真实库或上传 PDF。`created` 只表示文件准备完成。无覆盖的原子发布支持 macOS/Linux；其他平台或文件系统不支持时会明确停止，Agent 应查明原因并按手册选择可验证的替代步骤，不能假报成功。
+脚本只准备本地文件：完整模板、两个项目 skill、非敏感 profile 和 `setup-state.json`。只有明确选择启用 Zotero 内 Codex 时，才额外生成 `research-vault-entry.md` 桥接文件；关闭或稍后决定都不会生成它。它不会安装 Python 依赖或外部软件，也不会配置插件、连接真实库或上传 PDF。`created` 只表示文件准备完成。无覆盖的原子发布支持 macOS/Linux；其他平台或文件系统不支持时会明确停止，Agent 应查明原因并按手册选择可验证的替代步骤，不能假报成功。
 
 **已有库不运行新库创建器。**按 00 的增量流程先备份、比较根规则/profile/模板/同名 skill，再合并必要内容并验证；不覆盖用户笔记，不为“续装”重建目录。仅安装 skill 的请求也不扩展成新建完整 Vault。
 
@@ -60,8 +60,9 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 - 按 00 核对正式库根 `AGENTS.md`、profile 全部字段、Obsidian 库入口、主 Agent 工作目录和技能发现。主 skill 为 `ai-paper-copilot`，安装/续装用 `ai-paper-setup`。
 - 检查已有 Zotero、Connector、BBT、LLM-for-Zotero，缺项再从官方来源处理；可选插件只在有需求时增加。
 - 把 LLM 笔记根、临时输出与图片位置绑定到正式库；使用插件内 Codex 时核对实际 binary、模型、登录、权限与所需 MCP。不能假设主会话和插件会话共享能力。
+- 只有用户选择启用 Zotero 内 Codex App Server 时，才配置插件内 binary、模型、登录、MCP 和 `research-vault-entry.md` 桥接；选择关闭时明确记录为 `false`，不把它列为缺项。
 - 有真实写作项目时配置该 collection 的 `.bib`；没有项目时明确记为待项目确定，不创建空任务绑定到模板。
-- 需要插件内科研入口时，用生成的 `research-vault-entry.md` 作为内容，按 00 核对当前插件自定义 skill 位置后安装并验证。生成这个文件不代表插件已经加载。
+- 只有选择启用插件内 Codex 时，才使用生成的 `research-vault-entry.md` 作为桥接内容，按 00 核对当前插件自定义 skill 位置后安装并验证。文件不存在表示该可选入口尚未启用，不是主 Vault Codex 缺失。
 
 用户提出的安装目标与已确认目录是后续普通安装步骤的依据。新账号授权、增加敏感访问、上传范围、付费或扩大系统改动时，说明具体动作和影响；登录、Token 与系统确认需要用户时，让用户直接在对应应用或官方页面完成。凭据不进聊天、profile、状态文件或 Git。
 
