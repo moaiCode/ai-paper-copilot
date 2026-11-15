@@ -80,11 +80,18 @@ jobs:
           from vault_utils import note_regions, read_note
 
           source = skill / "templates"
-          copied = Path("ResearchVault/模板")
-          source_files = {path.relative_to(source) for path in source.rglob("*.md")}
-          copied_files = {path.relative_to(copied) for path in copied.rglob("*.md")}
+          # Vault 模板目录统一使用 ASCII 名称，避免文档与 CI 对旧路径产生分叉。
+          copied = Path("ResearchVault/templates")
+          # README 是字段说明文档，不是 Obsidian 页面；其余 Markdown 才要求 frontmatter。
+          source_files = {path.relative_to(source) for path in source.rglob("*.md")
+                          if path.name != "README.md"}
+          copied_files = {path.relative_to(copied) for path in copied.rglob("*.md")
+                          if path.name != "README.md"}
           if not source_files or source_files != copied_files:
               raise SystemExit("模板源与 Vault 模板的文件集合不一致，或模板集合为空")
+
+          if (source / "README.md").read_bytes() != (copied / "README.md").read_bytes():
+              raise SystemExit("模板说明 README 与 Vault 副本内容不同")
 
           for relative in sorted(source_files):
               original = source / relative

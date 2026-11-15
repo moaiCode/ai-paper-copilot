@@ -70,6 +70,6 @@
 | `controversy` | 文献分歧、可能原因和可改变判断的证据 | 不把单篇论文结论写成共识 |
 | `synthesis` | 围绕一个问题的跨文献综合 | 设定可比性、冲突、证据强弱和下一步 |
 
-知识页模板共享 `title`、`aliases`、`tags`、`status`、`evidence_count`、`evidence_status`、`source_notes`、`related` 和 `updated`。正文应包含 30 秒摘要、边界、当前判断、证据矩阵、缺口和来源追踪；页面只在有明确判断和可追溯证据时创建。
+知识页模板共享 `title`、`aliases`、`tags`、`status`、`evidence_count`、`evidence_status`、`source_notes`、`related` 和 `updated`。正文应包含本套件定义的证据账本、边界、当前判断、缺口和来源追踪；页面只在有明确判断和可追溯证据时创建。
 
-模板结构参考了 [Zotero Analytical Workflow Skills](https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills)（核对版本：2026-11-16），但本套件的 Zotero 身份、材料状态、claim 核验和人工内容保护规则优先。
+设计来源与原创边界：我在 2026-11-16 核对了 [Zotero Analytical Workflow Skills](https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills)，只参考其知识组织问题和信息架构，不复制其模板正文、章节措辞或文件布局。本目录的 Zotero 身份、全文资料包、claim 核验、人工内容保护、方向收敛和实验衔接均为本套件独立设计；本 README 与套件内 `skills/ai-paper-copilot/references/template-metadata.md` 是本套件的字段契约。

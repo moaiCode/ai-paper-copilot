@@ -4,6 +4,10 @@
 
 安装后的 Vault 可直接阅读 `templates/README.md` 获取不依赖 skill 的字段速查；本文是 Agent 执行任务时使用的详细契约，二者都以当前模板和根 `AGENTS.md` 为准。
 
+## 设计来源与原创边界
+
+本套件在 2026-11-16 核对了 [Zotero Analytical Workflow Skills](https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills)，仅吸收其对知识分类、证据边界和快速阅读入口的工作流启发。当前模板的正文、字段契约、Zotero/PDF 身份链、AI 与 HUMAN 分区、人工复核失效规则以及研究问题到实验的衔接均由本项目独立设计；不把参考项目的模板文字或文件布局当作本套件内容来源。
+
 ## 读取和修改约束
 
 - frontmatter 必须位于文件最顶部，使用一对 `---` 包围的 YAML 映射。
@@ -27,6 +31,7 @@ fulltext_path              = Vault 内独立全文资料包中的 full.md 路径
 | 字段 | 适用页面 | 谁提供/更新 | 含义与要求 |
 |---|---|---|---|
 | `type` | 所有结构化页面 | 模板；创建时确定 | 页面类型。校验器据此识别文献、知识、实验或投稿页，不应在补读时改变。 |
+| `knowledge_kind` | 知识页 | 模板；创建时确定 | 知识页子类型：`theme`、`concept`、`method`、`relation`、`controversy` 或 `synthesis`；决定正文问题，不表示证据强度。 |
 | `title` | 所有结构化页面 | Zotero 或用户；AI 可整理显示格式 | 页面标题。文献页使用规范论文标题，知识页使用稳定的研究单元名称，不把年份或作者强塞进知识页标题。 |
 | `aliases` | 文献、知识页 | 用户/AI 建议，用户确认 | 可搜索的别名、缩写或旧称。不要把未经确认的同义词当作正式概念。 |
 | `tags` | 文献、知识页 | 用户/AI 建议 | Obsidian 标签列表。用于导航，不替代证据和页面链接；保持少而稳定。 |
@@ -78,7 +83,7 @@ fulltext_path              = Vault 内独立全文资料包中的 full.md 路径
 
 ## 知识页字段
 
-知识页模板分为主题、概念、方法、关系、争议和综合六类。它们共享上述页面字段，但正文回答的问题不同：
+知识页模板分为主题、概念、方法、关系、争议和综合六类。它们共享上述页面字段和 AI/HUMAN 分区，但正文回答的问题不同：
 
 - **主题**：研究对象与结果的综合判断、条件边界、证据缺口和候选问题。
 - **概念**：定义、边界、测量、代理变量和相邻概念的区别。
@@ -87,7 +92,7 @@ fulltext_path              = Vault 内独立全文资料包中的 full.md 路径
 - **争议**：竞争性观点、分歧来源、不可直接比较的条件和能区分解释的新证据。
 - **综合**：跨多个主题/关系/争议页的成熟判断，保留 claim 级来源链。
 
-知识页的 `evidence_status` 是页面级状态；正文表格中的 `evidence_role` 建议只用 `direct`、`mechanism`、`conditional`、`contextual`、`related`。`interpretation` 表示 Agent 的解释，不得和已经由全文支持的事实混写。知识页先写当前判断和边界，再列文献，不以论文数量或标签数量作为完成标准。
+知识页的 `evidence_status` 是页面级状态；正文证据账本中的 `证据角色` 只用 `direct`、`mechanism`、`conditional`、`contextual`、`related`，`核验` 只用 `fulltext_verified`、`note_only`、`unverified`。`unverified` 表示尚未定位到原始证据，不能被当作“暂时正确”。AI 只更新 AI 区；用户在 HUMAN 区裁决边界、方向和是否进入实验。知识页先写当前判断和边界，再记录来源与可执行动作，不以论文数量或标签数量作为完成标准。
 
 ## 项目、实验和写作字段
 
