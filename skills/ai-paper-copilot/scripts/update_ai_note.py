@@ -26,9 +26,13 @@ except ImportError as exc:
 # 需要单独检查，不允许借用本脚本把一篇已归档笔记变成另一篇论文。
 IDENTITY_FIELDS = ("type", "library_scope", "zotero_key", "pdf_key", "citekey")
 EDITABLE_FIELDS = {
-    "title", "aliases", "tags", "material_status", "claims", "fulltext_path",
-    "doi", "arxiv", "year", "venue", "task", "setting", "protocol",
-    "source_sha256", "updated", "coverage", "source_url",
+    # 这些字段属于可由题录、全文解析或 AI 分析更新的派生产物；它们不改变
+    # 文献身份，也不包含人工 HUMAN 区。身份字段仍由单独的归档流程修改。
+    "title", "aliases", "tags", "authors", "year", "source", "publication_type",
+    "doi", "url", "arxiv", "theme", "study_area", "data_source", "methodology",
+    "core_variable", "key_finding", "relevance", "keywords", "related_notes",
+    "material_status", "claims", "fulltext_path", "venue", "task", "setting",
+    "protocol", "source_sha256", "updated", "coverage", "source_url",
 }
 VERIFICATIONS = {"unverified", "agent_verified", "human_verified"}
 

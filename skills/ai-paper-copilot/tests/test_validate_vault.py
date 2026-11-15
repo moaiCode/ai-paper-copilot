@@ -35,7 +35,7 @@ class ValidateVaultTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.vault = self.root / "vault"
-        for directory in ("01knowledge", "02vault", "03fulltext", "04projects", "05writing", "06inbox", "模板"):
+        for directory in ("01knowledge", "02vault", "03fulltext", "04projects", "05writing", "06inbox", "templates"):
             (self.vault / directory).mkdir(parents=True)
 
     @staticmethod
@@ -176,7 +176,7 @@ class ValidateVaultTests(unittest.TestCase):
         self.assertNotIn("REQUIRED_FIELD", self.codes(report))
 
     def test_templates_and_fulltext_content_are_not_checked_as_notes(self):
-        (self.vault / "模板/raw.md").write_text("{{title}} [[not-created]]", encoding="utf-8")
+        (self.vault / "templates/raw.md").write_text("{{title}} [[not-created]]", encoding="utf-8")
         (self.vault / "03fulltext/raw.md").write_text("No frontmatter [[not-a-vault-link]]", encoding="utf-8")
         self.note()
         self.assertEqual(self.run_check()[0], 0)

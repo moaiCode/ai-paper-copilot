@@ -50,7 +50,7 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 
 脚本只准备本地文件：完整模板、两个项目 skill、非敏感 profile 和 `setup-state.json`。只有明确选择启用 Zotero 内 Codex 时，才额外生成 `research-vault-entry.md` 桥接文件；关闭或稍后决定都不会生成它。它不会安装 Python 依赖或外部软件，也不会配置插件、连接真实库或上传 PDF。`created` 只表示文件准备完成。无覆盖的原子发布支持 macOS/Linux；其他平台或文件系统不支持时会明确停止，Agent 应查明原因并按手册选择可验证的替代步骤，不能假报成功。
 
-**已有库不运行新库创建器。**按 00 的增量流程先备份、比较根规则/profile/模板/同名 skill，再合并必要内容并验证；不覆盖用户笔记，不为“续装”重建目录。仅安装 skill 的请求也不扩展成新建完整 Vault。
+**已有库不运行新库创建器。**按 00 的增量流程先备份、比较根规则/profile/`templates/`/同名 skill，再合并必要内容并验证；不覆盖用户笔记，不为“续装”重建目录。仅安装 skill 的请求也不扩展成新建完整 Vault。
 
 ## 3. 按未完成项继续
 

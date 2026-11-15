@@ -20,7 +20,7 @@ SCOPE_RE = re.compile(r"^(?:users/(?:0|[1-9][0-9]*)|groups/[1-9][0-9]*)$")
 DEFAULT_PATHS = {
     "knowledge": "01knowledge", "notes": "02vault", "fulltext": "03fulltext",
     "projects": "04projects", "writing": "05writing", "inbox": "06inbox",
-    "templates": "模板",
+    "templates": "templates",
 }
 AI_START, AI_END = "<!-- AI:START -->", "<!-- AI:END -->"
 HUMAN_START, HUMAN_END = "<!-- HUMAN:START -->", "<!-- HUMAN:END -->"

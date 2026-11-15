@@ -166,7 +166,7 @@ export CANDIDATE_PATH="${VAULT_ROOT}/06inbox/候选笔记.md"
 
 ## 4. 文献笔记字段与分区
 
-使用 Vault 模板。以下示例只展示核心结构，不是一篇已经核验的论文：
+使用 Vault 的 `templates/` 模板。字段含义、来源和合法状态见 [模板元数据与填写契约](skills/ai-paper-copilot/references/template-metadata.md)；以下示例只展示核心结构，不是一篇已经核验的论文：
 
 ```yaml
 ---

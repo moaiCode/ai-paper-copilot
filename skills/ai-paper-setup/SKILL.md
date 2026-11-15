@@ -40,7 +40,7 @@ Computer Use 是减少点击的执行能力，不是新的授权来源。它不�
 
 - 新库从源码运行本 skill 的 `scripts/setup_vault.py --vault <用户确认的绝对路径> --json` 预览，核对目标后加 `--apply`。脚本默认不写文件，不接受凭据；参数细节用 `--help` 和 `INSTALL.md` 核对。
 - 它准备完整模板、主 skill 与本安装 skill、profile 和 `setup-state.json`；只有选择启用 Zotero 内 Codex 时才生成 `research-vault-entry.md` 桥接文件。成功仅表示 `files_prepared`，依赖、插件、连接和样本仍需完成。
-- 已有目录拒绝自动创建/覆盖。接入已有库先备份并比较 AGENTS/profile/模板/同名 skill，按 00 增量合并；保护人工笔记和原有规则。仅安装 skill 时不擅自创建完整科研库。
+- 已有目录拒绝自动创建/覆盖。接入已有库先备份并比较 AGENTS/profile/templates/同名 skill，按 00 增量合并；保护人工笔记和原有规则。仅安装 skill 时不擅自创建完整科研库。
 - 已部署副本不必再次运行新库创建器。需要源码脚本时使用已确认的仓库或重新取得来源，不把正式库的 `.agents` 误作源码根。
 - `llm_for_zotero.codex_app_server` 是三态非敏感偏好：`true` 表示用户要在 Zotero 内使用 Codex，`false` 表示明确关闭，`null` 表示稍后决定。只有 `true` 才生成并配置 `research-vault-entry.md` 桥接；`false` 或 `null` 时跳过插件内 Codex binary、登录、MCP 和桥接配置，主 Vault 的 Codex 不受影响。
 

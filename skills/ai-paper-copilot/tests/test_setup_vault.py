@@ -40,7 +40,7 @@ class SetupVaultTests(unittest.TestCase):
                         "integrations": {"llm_for_zotero": {"codex_app_server": None}},
                         "mineru": {"backend": None, "automatic_parse": False, "upload_policy": "ask_before_upload", "local_url": "http://127.0.0.1:8000"},
                         "paths": {"knowledge": "01knowledge", "notes": "02vault", "fulltext": "03fulltext", "projects": "04projects",
-                                  "writing": "05writing", "inbox": "06inbox", "templates": "模板"}}
+                                  "writing": "05writing", "inbox": "06inbox", "templates": "templates"}}
         for directory in self.profile["paths"].values():
             path = self.template / directory
             path.mkdir(parents=True)
@@ -54,7 +54,7 @@ class SetupVaultTests(unittest.TestCase):
             (directory / "SKILL.md").write_text("---\nname: fixture\ndescription: fixture\n---\n# 测试技能\n", encoding="utf-8")
         (self.main_skill / "templates").mkdir()
         (self.main_skill / "templates/阅读模板.md").write_text("---\ntype: literature-note\ntitle: '{{title}}'\n---\n", encoding="utf-8")
-        shutil.copyfile(self.main_skill / "templates/阅读模板.md", self.template / "模板/阅读模板.md")
+        shutil.copyfile(self.main_skill / "templates/阅读模板.md", self.template / "templates/阅读模板.md")
         # 两个位置的 gitkeep 也应属于同一模板集合，保证测试确实覆盖完整双份复制。
         (self.main_skill / "templates/.gitkeep").write_text("", encoding="utf-8")
         (self.setup_skill / "scripts").mkdir()
@@ -108,7 +108,7 @@ class SetupVaultTests(unittest.TestCase):
             self.assertTrue(installed.is_file())
             self.assertFalse(installed.is_symlink())
             self.assertEqual(installed.read_bytes(), (self.repo / "skills" / name / "SKILL.md").read_bytes())
-        self.assertEqual((self.target / "模板/阅读模板.md").read_bytes(), (self.target / ".agents/skills/ai-paper-copilot/templates/阅读模板.md").read_bytes())
+        self.assertEqual((self.target / "templates/阅读模板.md").read_bytes(), (self.target / ".agents/skills/ai-paper-copilot/templates/阅读模板.md").read_bytes())
         self.assertIsNone(result["paths"]["entry"])
         self.assertFalse((self.target / "research-vault-entry.md").exists())
         self.assertEqual(before, self.snapshot())
@@ -243,7 +243,7 @@ class SetupVaultTests(unittest.TestCase):
         (self.setup_skill / "SKILL.md").unlink()
         self.assertEqual(self.assert_rejected("SOURCE_INCOMPLETE", apply=True).exit_code, 2)
         (self.setup_skill / "SKILL.md").write_text("fixture", encoding="utf-8")
-        (self.template / "模板/阅读模板.md").write_text("different", encoding="utf-8")
+        (self.template / "templates/阅读模板.md").write_text("different", encoding="utf-8")
         self.assert_rejected("SOURCE_TEMPLATE_MISMATCH", apply=True)
         self.assertFalse(self.target.parent.exists())
 

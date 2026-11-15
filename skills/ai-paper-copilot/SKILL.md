@@ -37,6 +37,7 @@ metadata:
 | 阅读单篇论文、解释方法、生成完整笔记 | [ai-reading-lens.md](references/ai-reading-lens.md) |
 | 引用、数值、原文位置、区分事实与推断 | [evidence-contract.md](references/evidence-contract.md) |
 | Vault 归档、更新笔记、人工区保护、跨论文综合 | [vault-and-index.md](references/vault-and-index.md) |
+| 模板字段、YAML 元数据、模板升级 | [template-metadata.md](references/template-metadata.md) |
 | 找研究问题、设计或执行实验、记录结果 | [idea-and-experiment.md](references/idea-and-experiment.md) |
 | 英文 LaTeX 写作、`.bib` 接口、审稿与投稿 | [writing-and-review.md](references/writing-and-review.md) |
 
@@ -53,6 +54,7 @@ metadata:
 
 - 文献笔记优先使用 Vault 内当前模板；没有时使用 [精读笔记模板](templates/精读笔记模板.md)。保留最小元信息和核心 `claims`，正文按实际论文完整展开，不把每一句话都做成机器字段。
 - 综合页面用 [主题综合模板](templates/主题综合模板.md)，研究问题用 [研究问题卡](templates/研究问题卡.md)，持续项目用 [项目状态模板](templates/项目状态模板.md)。重要判断链接到支持它的文献和具体证据。
+- 知识层按需选择 [主题](templates/知识库-主题模板.md)、[概念](templates/知识库-概念模板.md)、[方法](templates/知识库-方法模板.md)、[关系](templates/知识库-关系模板.md)、[争议](templates/知识库-争议模板.md)或综合模板；先形成可复用判断，再把来源和条件边界写清。
 - 实验设计和运行分别用 [实验设计单](templates/实验设计单.md) 与 [实验运行记录](templates/实验运行记录.md)；真实结果要能回到代码版本、配置、命令和原始日志。
 - 写作使用目标 venue 的实际 LaTeX 模板和真实 `.bib`，投稿按 [投稿前检查表](templates/投稿前检查表.md) 结合当期要求核查。
 - 工具检查执行 `python3 <skill-dir>/scripts/doctor.py --vault <vault> --json`；文件结构检查执行 `python3 <skill-dir>/scripts/validate_vault.py --vault <vault> --json`，必要时用 `--path` 限定本轮文档。校验通过只代表程序覆盖的结构检查通过，不代表科学结论或引用真实性已验证。

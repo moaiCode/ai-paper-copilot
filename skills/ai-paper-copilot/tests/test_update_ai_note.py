@@ -60,6 +60,22 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(report["downgraded_claims"], ["C1"])
         self.assertEqual(read_note(output)[0]["claims"][0]["verification"], "unverified")
 
+    def test_reading_index_fields_can_be_refreshed_without_changing_identity(self):
+        output, report = updater.prepare(note(), note({
+            "authors": ["Author One"],
+            "year": 2024,
+            "theme": "方法比较",
+            "methodology": "受控实验",
+            "key_finding": "需要回到原文核查的摘要",
+            "related_notes": ["[[主题页]]"],
+        }, ai="补充后的 AI 分析"))
+        metadata = read_note(output)[0]
+        self.assertEqual(metadata["authors"], ["Author One"])
+        self.assertEqual(metadata["year"], 2024)
+        self.assertEqual(metadata["related_notes"], ["[[主题页]]"])
+        self.assertEqual(report["status"], "updated")
+        self.assertEqual(metadata["review_status"], "unreviewed")
+
     def test_source_revision_invalidates_claim(self):
         claim = dict(id="C1", text="原主张", source="PDF p.1", verification="human_verified")
         output, _ = updater.prepare(note({"claims": [claim], "source_sha256": "old"}),

@@ -10,7 +10,7 @@
 
 ## 路径与证据
 
-- 路径以 profile 为准：`01knowledge` 综合，`02vault` 文献笔记，`03fulltext` 原文资料包，`04projects` 项目/实验，`05writing` 稿件，`06inbox` 待整理；模板在 `模板/`。
+- 路径以 profile 为准：`01knowledge` 综合，`02vault` 文献笔记，`03fulltext` 原文资料包，`04projects` 项目/实验，`05writing` 稿件，`06inbox` 待整理；模板在 `templates/`，字段说明见 `templates/README.md`。
 - 正式文献用 `library_scope + zotero_key` 识别，附件用 `pdf_key`，写作用 `citekey`。身份未知先记录待补，不猜 key，不直接修改 Zotero SQLite。
 - 不编造来源、页码、数字、实验或用户判断。关键 claim 留原始位置；解析文本、Agent 核验和用户复核分别记录。
 - 初始配置未选择 MinerU 后端；实际使用时核对 profile 的 `upload_policy` 和已有明确授权，选择服务与范围后再上传，不从模板推断授权。
