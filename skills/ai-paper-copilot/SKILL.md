@@ -1,14 +1,14 @@
 ---
 name: ai-paper-copilot
-description: 以 Zotero、Obsidian 和 Codex 协作开展个人 AI/ML 科研：检索与入库、PDF 全文整理、论文精读与综合、研究问题、实验执行记录、LaTeX 写作和投稿准备。适用于维护科研 Vault、阅读论文或推进其中的研究项目；已有 PDF 或段落可直接处理，无须先入库。
+description: 以 Zotero、Obsidian 和 AI Agent 协作开展个人 AI/ML 科研：检索与入库、PDF 全文整理、论文精读与综合、研究问题、实验执行记录、LaTeX 写作和投稿准备。适用于维护科研 Vault、阅读论文或推进其中的研究项目；已有 PDF 或段落可直接处理，无须先入库。
 metadata:
-  version: "2.0.2"
+  version: "2.1.0"
   language: zh-CN
 ---
 
 # AI Paper Copilot
 
-让 Zotero 管理文献与批注，让 Obsidian 保存可复用的知识和项目状态，让 Codex 协调工具并完成有证据支撑的研究工作。AI 先形成完整笔记，用户复核后再沉淀个人判断；把理解、推断和实际实验结果清楚分开。
+让 Zotero 管理文献与批注，让 Obsidian 保存可复用的知识和项目状态，让 AI Agent 协调工具并完成有证据支撑的研究工作。AI 先形成完整笔记，用户复核后再沉淀个人判断；把理解、推断和实际实验结果清楚分开。
 
 ## 进入任务
 

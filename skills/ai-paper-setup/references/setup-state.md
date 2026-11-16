@@ -20,7 +20,7 @@
 | `needs_attention` | 原先完成的项失效或当前检查失败，记录具体原因 |
 | `not_applicable` | 当前方案不需要，注明原因；不能用于掩盖必需项失败 |
 
-新库脚本只会将 `local_files` 标成 `verified`，依赖、应用、插件、主 Agent 运行入口、连接和样本保持待办，未选 MinerU 为 `not_selected`。插件内 Codex 的选择记在 `decisions.zotero_codex_app_server`，不要从通用 `agent_runtime: pending` 推断插件内 Codex 是必装项。安装 Agent 可增加更细的检查项 `zotero_codex` 与 `plugin_bridge`：关闭为 `not_applicable`，稍后决定为 `not_selected`，启用但尚未配置为 `pending`。没有写作项目的 `bibliography` 可记 `not_applicable`。
+新库脚本只会将 `local_files` 标成 `verified`，依赖、应用、插件、主 Agent 运行入口、连接和样本保持待办，未选 MinerU 为 `not_selected`。安装 Agent 可按实际方案增加更细的检查项，但不要从通用 `agent_runtime: pending` 推断某个客户端专属运行时是必装项。没有写作项目的 `bibliography` 可记 `not_applicable`。
 
 ## 分开记录完成程度
 
@@ -29,7 +29,7 @@
 - `local_files`：根规则、profile、目录、两份项目 skill 和模板已核对。空库结构通过不等于外部环境可用。
 - `python_dependencies`：正式库所选解释器能导入依赖并运行脚本，不能用另一个环境代替。
 - `obsidian`、`zotero_plugins`、`agent_runtime`：分别记录实际安装、配置与发现情况；仅“应用存在”不足以标为功能已验证。
-- `mineru`、`connections`：明确验证的是连接还是解析；主 Codex、插件内 Codex、API 与 MCP 分别核对。Token 测试成功不能代替全文图文质量检查。
+- `mineru`、`connections`：明确验证的是连接还是解析；主 Agent 会话、API 与 MCP 分别核对。Token 测试成功不能代替全文图文质量检查。
 - `sample_validation`：仅在具体授权的论文确实处理并检查后更新，记录文献/附件身份与产物位置。人工核查状态继续保存在笔记中，不由安装进度代填。
 
 续装先核对相关已完成项是否仍有效，再执行本次范围内的待办。用户暂不配置某项时，保留对应状态并推进独立步骤；不重复创建正式库、不重置已有凭据、不因安装待办自动上传样例。

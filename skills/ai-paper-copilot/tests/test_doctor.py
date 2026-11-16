@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """隔离验证诊断的配置漂移、未知状态与敏感信息保护。
 
-所有 Zotero 偏好和 XPI 都在临时目录构造；登录状态与网络探测全部 mock，
+所有 Zotero 偏好和 XPI 都在临时目录构造；网络探测全部 mock，
 测试不会启动应用、读取真实 Token、修改用户配置或提交 PDF。
 """
 
@@ -68,7 +68,6 @@ class DoctorTests(unittest.TestCase):
     def checks(self):
         """只让 inspect 访问隔离 profile；不调用真实 CLI 或 HTTP 服务。"""
         with patch.object(doctor, "zotero_profile", return_value=self.profile_dir), \
-             patch.object(doctor.shutil, "which", return_value=None), \
              patch.object(doctor, "probe", return_value=True):
             return {item["name"]: item for item in doctor.inspect(self.vault)}
 

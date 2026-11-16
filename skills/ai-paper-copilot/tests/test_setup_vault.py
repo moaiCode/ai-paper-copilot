@@ -42,7 +42,6 @@ class SetupVaultTests(unittest.TestCase):
         self.target = self.root / "formal" / "ResearchVault"
         self.profile = {"schema_version": 2,
                         "zotero": {"api_base_url": "http://127.0.0.1:23119/api", "library_scope": "users/0", "data_dir": None},
-                        "integrations": {"llm_for_zotero": {"codex_app_server": None}},
                         "mineru": {"backend": None, "automatic_parse": False, "upload_policy": "ask_before_upload", "local_url": "http://127.0.0.1:8000"},
                         "paths": {"knowledge": "01knowledge", "notes": "02vault", "fulltext": "03fulltext", "projects": "04projects",
                                   "writing": "05writing", "inbox": "06inbox", "templates": "templates"}}
@@ -73,7 +72,7 @@ class SetupVaultTests(unittest.TestCase):
     def args(self, **changes):
         values = dict(vault=str(self.target), repo=str(self.repo), mineru_backend="unconfigured",
                       upload_policy="ask_before_upload", local_url="http://127.0.0.1:8000",
-                      zotero_codex="unconfigured", apply=False, json=True)
+                      apply=False, json=True)
         values.update(changes)
         return SimpleNamespace(**values)
 
@@ -114,8 +113,7 @@ class SetupVaultTests(unittest.TestCase):
             self.assertFalse(installed.is_symlink())
             self.assertEqual(installed.read_bytes(), (self.repo / "skills" / name / "SKILL.md").read_bytes())
         self.assertEqual((self.target / "templates/阅读模板.md").read_bytes(), (self.target / ".agents/skills/ai-paper-copilot/templates/阅读模板.md").read_bytes())
-        self.assertIsNone(result["paths"]["entry"])
-        self.assertFalse((self.target / "research-vault-entry.md").exists())
+        self.assertNotIn("entry", result["paths"])
         self.assertEqual(before, self.snapshot())
         self.assert_no_stage()
 
@@ -127,29 +125,8 @@ class SetupVaultTests(unittest.TestCase):
         self.assertIsNone(profile["mineru"]["backend"])
         self.assertFalse(profile["mineru"]["automatic_parse"])
         self.assertEqual(profile["mineru"]["upload_policy"], "ask_before_upload")
-        self.assertIsNone(profile["integrations"]["llm_for_zotero"]["codex_app_server"])
-
-    def test_zotero_codex_choice_is_recorded_without_credentials(self):
-        setup.prepare(self.args(apply=True, zotero_codex="enabled"))
-        profile = json.loads((self.target / "research-profile.json").read_text())
-        state = json.loads((self.target / "setup-state.json").read_text())
-        self.assertTrue(profile["integrations"]["llm_for_zotero"]["codex_app_server"])
-        self.assertEqual(state["decisions"]["zotero_codex_app_server"], "enabled")
+        self.assertNotIn("integrations", profile)
         self.assertNotIn("token", json.dumps(profile).lower())
-
-    def test_zotero_codex_can_be_explicitly_disabled(self):
-        setup.prepare(self.args(apply=True, zotero_codex="disabled"))
-        profile = json.loads((self.target / "research-profile.json").read_text())
-        state = json.loads((self.target / "setup-state.json").read_text())
-        self.assertFalse(profile["integrations"]["llm_for_zotero"]["codex_app_server"])
-        self.assertEqual(state["decisions"]["zotero_codex_app_server"], "disabled")
-        self.assertIsNone(state["paths"]["entry"])
-        self.assertFalse((self.target / "research-vault-entry.md").exists())
-
-    def test_unconfigured_zotero_codex_does_not_create_bridge_entry(self):
-        result = setup.prepare(self.args(apply=True, zotero_codex="unconfigured"))
-        self.assertIsNone(result["paths"]["entry"])
-        self.assertFalse((self.target / "research-vault-entry.md").exists())
 
     def test_explicit_backend_and_upload_decisions_are_recorded(self):
         setup.prepare(self.args(apply=True, mineru_backend="local", upload_policy="public_papers_only", local_url="https://mineru.example.org/api/"))
@@ -159,11 +136,11 @@ class SetupVaultTests(unittest.TestCase):
         self.assertEqual(profile["mineru"]["local_url"], "https://mineru.example.org/api")
         self.assertFalse(profile["mineru"]["automatic_parse"])
 
-    def test_state_records_file_preparation_and_enabled_entry_is_a_valid_bridge(self):
+    def test_state_records_file_preparation_and_paths(self):
         git = self.repo / ".git"
         git.mkdir()
         (git / "HEAD").write_text("a" * 40 + "\n", encoding="utf-8")
-        setup.prepare(self.args(apply=True, mineru_backend="cloud", zotero_codex="enabled"))
+        setup.prepare(self.args(apply=True, mineru_backend="cloud"))
         state = json.loads((self.target / "setup-state.json").read_text())
         self.assertEqual(state["stage"], "files_prepared")
         self.assertEqual(state["checks"]["local_files"], "verified")
@@ -172,22 +149,8 @@ class SetupVaultTests(unittest.TestCase):
         self.assertEqual(state["source"]["repo"], str(self.repo))
         self.assertEqual(state["source"]["commit"], "a" * 40)
         self.assertEqual(state["source"]["commit_matches_snapshot"], "not_checked")
-        entry = (self.target / "research-vault-entry.md").read_text(encoding="utf-8")
-        # 验证 skill 可发现性和真实文件引用，不仅检查正文是否出现某段措辞。
-        metadata, body, _ = read_note(entry)
-        self.assertEqual(metadata["name"], "research-vault")
-        self.assertIsInstance(metadata["description"], str)
-        self.assertTrue(metadata["description"].strip())
-        referenced = {Path(value) for value in re.findall(r"`([^`]+)`", body) if Path(value).is_absolute()}
-        expected = {self.target / relative for relative in (
-            "AGENTS.md", "research-profile.json", ".agents/skills/ai-paper-copilot/SKILL.md", "setup-state.json")}
-        self.assertEqual(referenced, expected)
-        self.assertTrue(all(path.is_file() for path in referenced))
+        self.assertNotIn("entry", state["paths"])
         self.assertEqual(json.loads((self.target / "research-profile.json").read_text())["mineru"]["backend"], "cloud")
-        # 易变化状态只由 profile/state 维护，bridge 不再保存初次安装选择的副本。
-        for value in ("cloud", "ask_before_upload", "files_prepared", "enabled"):
-            self.assertNotIn(value, body)
-        self.assertNotIn(str(self.template / "AGENTS.md"), entry)
 
     def test_unselected_mineru_is_not_marked_ready(self):
         setup.prepare(self.args(apply=True))
@@ -268,10 +231,6 @@ class SetupVaultTests(unittest.TestCase):
         self.write_profile()
         self.assert_rejected("SOURCE_BOUND", apply=True)
         self.profile["zotero"]["data_dir"] = None
-        self.profile["integrations"]["llm_for_zotero"]["codex_app_server"] = True
-        self.write_profile()
-        self.assert_rejected("SOURCE_BOUND", apply=True)
-        self.profile["integrations"]["llm_for_zotero"]["codex_app_server"] = None
         self.profile["mineru"]["backend"] = "cloud"
         self.write_profile()
         self.assert_rejected("SOURCE_BOUND", apply=True)
@@ -426,16 +385,6 @@ class SetupVaultTests(unittest.TestCase):
         self.assertNotIn(secret, process.stdout + process.stderr)
         self.assertFalse(self.target.parent.exists())
 
-    def test_cli_invalid_zotero_codex_choice_is_rejected(self):
-        process = subprocess.run([sys.executable, str(SCRIPT), "--vault", str(self.target), "--repo", str(self.repo),
-                                  "--zotero-codex", "maybe", "--json"], capture_output=True, text=True, check=False)
-        self.assertEqual(process.returncode, 2)
-        report = json.loads(process.stdout)
-        self.assertEqual(report["status"], "error")
-        self.assertEqual(report["issues"][0]["code"], "ARGUMENTS")
-        self.assertNotIn("maybe", process.stdout + process.stderr)
-        self.assertFalse(self.target.parent.exists())
-
     def test_cli_default_repo_and_preview_use_fixture_script_location(self):
         script = self.setup_skill / "scripts/setup_vault.py"
         process = subprocess.run([sys.executable, str(script), "--vault", str(self.target), "--json"], capture_output=True, text=True, check=False)
@@ -451,8 +400,7 @@ class SetupVaultTests(unittest.TestCase):
         before = {path.relative_to(template).as_posix(): setup.file_hash(path)
                   for path in template.rglob("*") if path.is_file()}
         target = self.root / "发行包演练" / "ResearchVault"
-        command = [sys.executable, str(SCRIPT), "--repo", str(repo), "--vault", str(target),
-                   "--zotero-codex", "enabled", "--json"]
+        command = [sys.executable, str(SCRIPT), "--repo", str(repo), "--vault", str(target), "--json"]
         preview = subprocess.run(command, capture_output=True, text=True, check=False)
         self.assertEqual(preview.returncode, 0, preview.stdout + preview.stderr)
         self.assertEqual(json.loads(preview.stdout)["status"], "preview")
@@ -486,7 +434,6 @@ class SetupVaultTests(unittest.TestCase):
         for actual in state["paths"].values():
             if actual is not None:
                 self.assertTrue(Path(actual).exists(), actual)
-        read_note((target / "research-vault-entry.md").read_text(encoding="utf-8"))
         # 执行安装副本中的结构校验器，只读文件；不使用 doctor，不探测
         # 本机 Zotero/MCP，不连接解析服务，不以源脚本替代安装结果。
         validator = target / ".agents/skills/ai-paper-copilot/scripts/validate_vault.py"

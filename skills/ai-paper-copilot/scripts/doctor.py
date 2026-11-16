@@ -11,8 +11,6 @@ import configparser
 import http.client
 import json
 import re
-import shutil
-import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -185,16 +183,6 @@ def inspect(vault):
     for app in ("Zotero", "Obsidian"):
         exists = (Path("/Applications") / (app + ".app")).is_dir()
         add(app, "configured" if exists else "unknown", "检测 macOS /Applications 安装目录。", True)
-    codex = shutil.which("codex")
-    add("Codex CLI", "configured" if codex else "missing", codex or "未在 PATH 找到 codex。", True)
-    if codex:
-        try:
-            login = subprocess.run([codex, "login", "status"], capture_output=True, timeout=8)
-            add("Codex 登录", "verified" if login.returncode == 0 else "not_configured",
-                "已登录；未输出账户信息。" if login.returncode == 0 else "请使用 codex login 完成本机登录。", True)
-        except (OSError, subprocess.TimeoutExpired):
-            add("Codex 登录", "unknown", "登录状态检查失败或超时。", True)
-
     zotero = profile.get("zotero", {})
     if not isinstance(zotero, dict):
         raise ValueError("配置 zotero 必须为对象")

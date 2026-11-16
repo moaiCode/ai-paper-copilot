@@ -1,4 +1,4 @@
 interface:
   display_name: "AI 科研工作流"
-  short_description: "协同 Zotero、Obsidian 与 Codex 完成论文阅读、证据核查和研究推进"
+  short_description: "协同 Zotero、Obsidian 与 AI Agent 完成论文阅读、证据核查和研究推进"
   default_prompt: "使用 $ai-paper-copilot 检查当前科研资料，完成本轮阅读与知识整理，并列出待核事项。"

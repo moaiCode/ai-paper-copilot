@@ -14,7 +14,7 @@
 
 **提问界面约定：**如果当前客户端提供结构化的用户提问工具或表单（例如带选项的 `request_user_input`、`request_user_input_async`、`AskUserQuestion` 等），安装 Agent 必须优先调用该工具，一次提交不超过 3 个关键问题，并为可枚举选择提供选项。不要把本来可以用选项回答的问题改写成普通长段落。只有客户端没有结构化提问能力、工具调用失败或用户主动要求纯文本时，才退回编号文本提问。GitHub 上的 Markdown 只能描述这个约定，不能替没有该功能的客户端生成弹窗。
 
-**Computer Use 约定：**如果当前 Codex/Agent 提供桌面或浏览器 Computer Use，完成关键选择后优先使用它处理只能在 GUI 中完成的可逆操作：打开并切换 Obsidian Vault、打开 Zotero 设置、安装或启用已确认的插件、填写非敏感路径和本地地址、点击测试按钮、重载应用，以及截图或读取界面确认结果。命令行仍负责模板复制、虚拟环境、脚本检查、状态文件和可回滚的批处理；不要为了“看起来自动化”把确定性文件操作改成鼠标点击。
+**Computer Use 约定：**如果当前 Agent 客户端提供桌面或浏览器 Computer Use，完成关键选择后优先使用它处理只能在 GUI 中完成的可逆操作：打开并切换 Obsidian Vault、打开 Zotero 设置、安装或启用已确认的插件、填写非敏感路径和本地地址、点击测试按钮、重载应用，以及截图或读取界面确认结果。命令行仍负责模板复制、虚拟环境、脚本检查、状态文件和可回滚的批处理；不要为了“看起来自动化”把确定性文件操作改成鼠标点击。
 
 Computer Use 每次写入 GUI 前先确认目标应用、目标库和预期变化；操作后读回实际设置并记录证据。API Token、密码、OAuth、系统权限、付费、删除/覆盖、批量导入和向云端上传 PDF 必须让用户在对应界面接管或明确确认，Agent 不从聊天中索取秘密，也不把秘密写进截图、日志、profile 或 Git。Computer Use 不可用、应用未打开、权限不足或读回不一致时，保留已完成的 CLI 工作，报告一个具体的人工步骤后继续其他独立检查。
 
@@ -28,7 +28,7 @@ Computer Use 每次写入 GUI 前先确认目标应用、目标库和预期变�
 
 1. **正式库：**新建还是接入已有库？实际绝对路径是什么？没有路径就先问，不自己选择仓库里的 `ResearchVault/`。
 2. **解析：**现在配置 MinerU 云端、自托管还是暂不配置？如选择云端，明确处理材料和费用范围；自托管核对已有服务地址，部署重型模型另作具体决定。
-3. **范围与客户端：**用户是否只想安装 skill，还是配置完整科研环境？是否需要在 Zotero 内使用 Codex App Server（启用 / 关闭 / 稍后决定）？不在 Zotero 内对话时默认关闭；主路径是 Vault 中的 Codex，其他客户端按其实际技能入口适配。
+3. **范围与客户端：**用户是否只想安装 skill，还是配置完整科研环境？当前使用的 AI 客户端是什么，它如何发现项目规则和 skill？主路径是在正式 Vault 中启动的 Agent 会话，不同客户端按各自实际入口适配，不假设统一安装方式。
 
 研究方向、语言等已有默认值先使用，不把首次安装扩成科研需求问卷。历史文档中的机器配置或上传授权不能代替当前用户的选择。
 
@@ -43,12 +43,12 @@ Computer Use 每次写入 GUI 前先确认目标应用、目标库和预期变�
 ```bash
 # 在源码仓库根运行。正式路径必须用用户确认的实际值替换。
 python3 skills/ai-paper-setup/scripts/setup_vault.py \
-  --vault "/请填写正式库绝对路径" --zotero-codex disabled --json
+  --vault "/请填写正式库绝对路径" --json
 ```
 
-路径与计划符合本次安装请求后，使用相同参数加 `--apply` 执行；已有明确授权无需再为普通复制重复询问。选过后端时传 `--mineru-backend cloud` 或 `local`；仅在用户明确授权该范围时传 `--upload-policy public_papers_only`；自托管传真实 `--local-url`。插件内 Codex 传 `--zotero-codex enabled` 或 `disabled`；稍后决定保持 `unconfigured`。未选后端保持默认 `unconfigured`，不妨碍准备基础文件。
+路径与计划符合本次安装请求后，使用相同参数加 `--apply` 执行；已有明确授权无需再为普通复制重复询问。选过后端时传 `--mineru-backend cloud` 或 `local`；仅在用户明确授权该范围时传 `--upload-policy public_papers_only`；自托管传真实 `--local-url`。未选后端保持默认 `unconfigured`，不妨碍准备基础文件。
 
-脚本只准备本地文件：完整模板、两个项目 skill、非敏感 profile 和 `setup-state.json`。只有明确选择启用 Zotero 内 Codex 时，才额外生成 `research-vault-entry.md` 桥接文件；关闭或稍后决定都不会生成它。它不会安装 Python 依赖或外部软件，也不会配置插件、连接真实库或上传 PDF。`created` 只表示文件准备完成。无覆盖的原子发布支持 macOS/Linux；其他平台或文件系统不支持时会明确停止，Agent 应查明原因并按手册选择可验证的替代步骤，不能假报成功。
+脚本只准备本地文件：完整模板、两个项目 skill、非敏感 profile 和 `setup-state.json`。它不生成任何客户端专属入口。它不会安装 Python 依赖或外部软件，也不会配置插件、连接真实库或上传 PDF。`created` 只表示文件准备完成。无覆盖的原子发布支持 macOS/Linux；其他平台或文件系统不支持时会明确停止，Agent 应查明原因并按手册选择可验证的替代步骤，不能假报成功。
 
 **已有库不运行新库创建器。**按 00 的增量流程先备份、比较根规则/profile/`templates/`/同名 skill，再合并必要内容并验证；不覆盖用户笔记，不为“续装”重建目录。仅安装 skill 的请求也不扩展成新建完整 Vault。
 
@@ -59,10 +59,8 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 - 在正式库的独立虚拟环境安装主 skill 的 `requirements.txt`，验证解释器与脚本实际可用。
 - 按 00 核对正式库根 `AGENTS.md`、profile 全部字段、Obsidian 库入口、主 Agent 工作目录和技能发现。主 skill 为 `ai-paper-copilot`，安装/续装用 `ai-paper-setup`。
 - 检查已有 Zotero、Connector、BBT、LLM-for-Zotero，缺项再从官方来源处理；可选插件只在有需求时增加。
-- 把 LLM 笔记根、临时输出与图片位置绑定到正式库；使用插件内 Codex 时核对实际 binary、模型、登录、权限与所需 MCP。不能假设主会话和插件会话共享能力。
-- 只有用户选择启用 Zotero 内 Codex App Server 时，才配置插件内 binary、模型、登录、MCP 和 `research-vault-entry.md` 桥接；选择关闭时明确记录为 `false`，不把它列为缺项。
+- 把 LLM 笔记根、临时输出与图片位置绑定到正式库。主工作由用户在正式 Vault 中启动的 Agent 会话承担；不同客户端的技能发现、MCP 和权限各自核对，不能假设跨会话共享能力。
 - 有真实写作项目时配置该 collection 的 `.bib`；没有项目时明确记为待项目确定，不创建空任务绑定到模板。
-- 只有选择启用插件内 Codex 时，才使用生成的 `research-vault-entry.md` 作为桥接内容，按 00 核对当前插件自定义 skill 位置后安装并验证。文件不存在表示该可选入口尚未启用，不是主 Vault Codex 缺失。
 
 用户提出的安装目标与已确认目录是后续普通安装步骤的依据。新账号授权、增加敏感访问、上传范围、付费或扩大系统改动时，说明具体动作和影响；登录、Token 与系统确认需要用户时，让用户直接在对应应用或官方页面完成。凭据不进聊天、profile、状态文件或 Git。
 
@@ -72,6 +70,6 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 
 按实际结果更新 `setup-state.json`，每项附简短非敏感证据：文件准备、依赖、应用/插件、根目录绑定、模型/工具连接和真实样本分别记录。状态文件便于接续，不能代替读回检查，也不能因为目录存在就把 pending 改成完成。
 
-先运行仅检查文件的 `validate_vault.py`。`doctor.py` 虽然只读，但会读取本机 Zotero 偏好、检查 Codex 登录并探测本地 API；只有本轮已经允许这些真实环境检查时才运行，不能把它当作完全离线的检查器。仅准备文件或隔离演练时保留环境与连接待办。按实际配置验证模型、API/MCP、BBT 和插件入口；材料未获授权或条件不具备时，其他独立步骤继续。空库 `empty_vault` 是正常结构结果，不是完整工具链验收。
+先运行仅检查文件的 `validate_vault.py`。`doctor.py` 虽然只读，但会读取本机 Zotero 偏好并探测本地 API；只有本轮已经允许这些真实环境检查时才运行，不能把它当作完全离线的检查器。仅准备文件或隔离演练时保留环境与连接待办。按实际配置验证模型、API/MCP、BBT 和插件入口；材料未获授权或条件不具备时，其他独立步骤继续。空库 `empty_vault` 是正常结构结果，不是完整工具链验收。
 
 最终告诉用户：正式库和 skill 的位置、已经实际验证的项、仍需本人操作的具体一步、下一次如何继续。不要把“文件复制成功”“环境已配置”“论文解析成功”和“人工核查完成”混成一个完成状态。

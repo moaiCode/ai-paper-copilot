@@ -1,4 +1,4 @@
-# AI 科研工作流：Zotero × Obsidian × Codex
+# AI 科研工作流：Zotero × Obsidian × AI Agent
 
 源码与更新：[moaiCode/ai-paper-copilot](https://github.com/moaiCode/ai-paper-copilot)。
 
@@ -12,9 +12,9 @@
 
 如果当前 Agent 还支持 Computer Use，安装向导会用它完成打开应用、切换正式 Vault、填写非敏感 GUI 设置、点击测试和读回结果；CLI 继续负责文件、依赖和校验。Token、登录、系统权限、删除/覆盖和上传 PDF 仍需要用户接管。
 
-LLM-for-Zotero 内的 Codex 是可选运行时，不是插件基础依赖。它只用于让 Zotero 内的对话复用本机 Codex；不在 Zotero 内对话时可以关闭它，主工作流仍由以正式 Vault 为工作目录的 Codex 统筹。
+本工作流不绑定特定 AI 客户端。只要客户端能读写本机文件、运行终端命令并加载项目规则，就可以承担主工作；Claude Code、Cursor、ChatGPT 桌面端、自建脚本等都可以，具体入口和能力按客户端实际情况核对。
 
-这是一套科研工作流技能与部署模板：Zotero保存题录/PDF/标注，Obsidian保存理解和项目，Codex协调阅读、代码、实验与LaTeX写作。AI先形成完整中文笔记，人核关键主张并保留自己的思考。
+这是一套科研工作流技能与部署模板：Zotero保存题录/PDF/标注，Obsidian保存理解和项目，AI Agent 协调阅读、代码、实验与LaTeX写作。AI先形成完整中文笔记，人核关键主张并保留自己的思考。
 
 **本目录中的 `ResearchVault/`仅是模板和测试目录，不是正式科研库。**先在[安装与首次配置](00-安装与首次配置.md)中选择自己的正式 `VAULT_ROOT`，复制模板并配置各工具；不要把软件持续导出绑定到套件里的模板，也不依赖模板自带skill链接。
 
@@ -34,7 +34,7 @@ flowchart LR
 | [AI 安装入口](INSTALL.md) | AI 检查环境、分轮提问、准备正式库、配置与验证；用户无须复制长提示词 |
 | [llms.txt](llms.txt) | 给支持 `llms.txt` 的 Agent 的精简文档索引与安全边界 |
 | [安装引导 skill](skills/ai-paper-setup/SKILL.md) | 安装、已有库接入与续装流程；默认预览的本地文件准备脚本 |
-| [00 · 安装与首次配置](00-安装与首次配置.md) | 选择正式库、安全复制、逐字段配置、插件/MCP/BBT/bridge、迁移与撤销 |
+| [00 · 安装与首次配置](00-安装与首次配置.md) | 选择正式库、安全复制、逐字段配置、插件/MCP/BBT、迁移与撤销 |
 | [01 · 日常操作手册](01-科研AI工作流操作手册.md) | 部署后从探索、阅读、综合推进到实验、写作和修改 |
 | [03 · Skill使用说明](03-ai-paper-copilot使用说明书.md) | 自然语言、脚本、笔记字段、补读更新和排错 |
 | [02 · 设计说明](02-个人科研Skill设计方案.md) | 模板与部署分离、证据状态和人工内容保护 |
@@ -49,10 +49,10 @@ flowchart LR
 
 1. 阅读00，编辑正式库绝对路径；新目标必须不存在，已有库按增量接入，不覆盖合并整库。
 2. 复制模板，安装项目级skill真实副本和独立Python依赖；修改正式库的根AGENTS及profile。
-3. Obsidian与Codex主文件夹打开正式库；CLI以正式库为cwd。逐项绑定LLM笔记落点、BBT项目`.bib`和可选bridge。
+3. Obsidian 与主 Agent 的工作目录都指向正式库；终端以正式库为 cwd。逐项绑定 LLM 笔记落点和 BBT 项目 `.bib`。
 4. 新会话先只读自检，再按已授权范围处理一篇公开论文。安装、连接、解析、原文质量与人工核验分别验收。
 
-模板恢复不会卸载已经安装的BBT/LLM插件、清除MinerU Token、重置Codex登录或卸载本地MCP。它只撤销指向模板的持续输出绑定并恢复模板内容；正式部署需要新选定的位置。
+模板恢复不会卸载已经安装的BBT/LLM插件、清除MinerU Token、重置 Agent 客户端登录或卸载本地MCP。它只撤销指向模板的持续输出绑定并恢复模板内容；正式部署需要新选定的位置。
 
 ## 仅验证发行包与模板
 
@@ -66,7 +66,7 @@ python3 -m venv .venv
 .venv/bin/python -m unittest discover -s skills/ai-paper-copilot/tests -v
 ```
 
-结构检查只读取模板，单元测试写入隔离临时目录；它们不连接 Zotero、MinerU 或 Codex。空模板返回 `empty_vault` 是正常结果，不能为了让报告全绿向模板填真实文献或绑定插件。用户明确允许检查真实环境后，再对正式库运行 `doctor.py`；它会读取本机 Zotero 偏好、检查 Codex 登录并探测本地 API，未配齐时可能报告 `needs_setup`。科研结论、图表正确性和人工认可都需另行检查。
+结构检查只读取模板，单元测试写入隔离临时目录；它们不连接 Zotero、MinerU 或任何 AI 客户端。空模板返回 `empty_vault` 是正常结果，不能为了让报告全绿向模板填真实文献或绑定插件。用户明确允许检查真实环境后，再对正式库运行 `doctor.py`；它会读取本机 Zotero 偏好并探测本地 API，未配齐时可能报告 `needs_setup`。科研结论、图表正确性和人工认可都需另行检查。
 
 正式数据的Git记录与PDF/Zotero备份分别安排。Git commit信息用中文，新增代码写清晰中文注释；不把密钥、登录态或大体积环境加入版本库。
 

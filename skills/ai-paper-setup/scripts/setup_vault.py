@@ -24,12 +24,10 @@ from urllib.parse import urlsplit
 
 
 STATE_NAME = "setup-state.json"
-ENTRY_NAME = "research-vault-entry.md"
 SKILL_NAMES = ("ai-paper-copilot", "ai-paper-setup")
 IGNORED_NAMES = {".DS_Store", "__pycache__", ".venv", ".git", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
 REQUIRED_PATHS = {"knowledge", "notes", "fulltext", "projects", "writing", "inbox", "templates"}
 PENDING_CHECKS = ("python_dependencies", "obsidian", "zotero_plugins", "agent_runtime", "mineru", "connections", "sample_validation")
-ZOTERO_CODEX_CHOICES = ("enabled", "disabled", "unconfigured")
 PLACEHOLDER_RE = re.compile(r"[<>`$]|\{\{|\}\}|(?:^|/)(?:\.\.\.|YOUR_VAULT|VAULT_PATH|REPLACE_ME)(?:/|$)|/path/to(?:/|$)|/absolute/path(?:/|$)|用户确认的正式库绝对路径|请填写正式库绝对路径|正式Vault绝对路径", re.I)
 
 
@@ -194,25 +192,6 @@ def non_sensitive_profile(profile):
         raise SetupError("SOURCE_BOUND", "模板已绑定真实数据位置或库身份，请恢复未绑定模板后使用。")
     if profile["zotero"].get("api_base_url"):
         valid_local_url(profile["zotero"]["api_base_url"])
-    integrations = profile.get("integrations")
-    if integrations is None:
-        # 兼容尚未加入 integrations 字段的旧模板：缺省等同于“稍后决定”，
-        # 但正式写回时仍补齐字段，避免后续 Agent 需要猜测配置是否存在。
-        integrations = profile["integrations"] = {}
-    elif not isinstance(integrations, dict):
-        raise SetupError("SOURCE_PROFILE", "模板 integrations 配置必须是 JSON 对象。")
-    llm_for_zotero = integrations.get("llm_for_zotero")
-    if llm_for_zotero is None:
-        llm_for_zotero = integrations["llm_for_zotero"] = {}
-    elif not isinstance(llm_for_zotero, dict):
-        raise SetupError("SOURCE_PROFILE", "模板 integrations.llm_for_zotero 配置必须是 JSON 对象。")
-    codex_choice = llm_for_zotero.get("codex_app_server")
-    if codex_choice is None:
-        llm_for_zotero["codex_app_server"] = None
-    elif not isinstance(codex_choice, bool):
-        raise SetupError("SOURCE_PROFILE", "模板 integrations.llm_for_zotero.codex_app_server 必须是布尔值或 null。")
-    else:
-        raise SetupError("SOURCE_BOUND", "模板已选择 LLM-for-Zotero 的 Codex 运行时，请恢复为未选择状态后使用。")
     mineru = profile["mineru"]
     # MinerU 的后端、自动解析和上传范围属于部署决定，模板不能偷偷继承
     # 维护者机器上的云端/自托管配置；安装时只接受命令行重新给出的选择。
@@ -270,7 +249,7 @@ def preflight(args):
     target = target_path(args.vault, repo)
     local_url = valid_local_url(args.local_url)
     template = repo / "ResearchVault"
-    for reserved in (".obsidian", ".agents", ".git", STATE_NAME, ENTRY_NAME):
+    for reserved in (".obsidian", ".agents", ".git", STATE_NAME):
         if exists_any(template / reserved):
             raise SetupError("SOURCE_NOT_INITIAL", "模板包含应用、安装或版本管理状态，请恢复未部署的初始模板。")
     sources = {"template": template, **{name: repo / "skills" / name for name in SKILL_NAMES}}
@@ -310,26 +289,16 @@ def preflight(args):
         raise SetupError("SOURCE_TEMPLATE_MISMATCH", "skill 模板与 Vault 模板的文件集合或内容不一致。")
     profile["mineru"].update(backend=None if args.mineru_backend == "unconfigured" else args.mineru_backend,
                               upload_policy=args.upload_policy, automatic_parse=False, local_url=local_url)
-    # 插件内 Codex 是可选运行时。模板只保留 null，正式库才记录用户明确选择的
-    # enabled/disabled；这里不写入登录、模型、路径或 token 等敏感运行时信息。
-    profile["integrations"]["llm_for_zotero"]["codex_app_server"] = (
-        None if args.zotero_codex == "unconfigured" else args.zotero_codex == "enabled"
-    )
     digest = hashlib.sha256(json.dumps({name: value["files"] for name, value in inventories.items()}, sort_keys=True).encode("utf-8")).hexdigest()
     return {"repo": repo, "target": target, "sources": sources, "inventories": inventories,
             "profile": profile, "source_commit": source_commit(repo), "snapshot_sha256": digest}
 
 
-def installation_paths(target, include_entry):
-    """返回部署后文件位置；插件桥接文件只在用户明确启用时存在。
-
-    用 null 表示未生成，而不是让 Agent 把一个预期路径误当成已经安装的
-    bridge。这样 disabled 和 unconfigured 都不会遗留用户不需要的文件。
-    """
+def installation_paths(target):
+    """返回部署后的稳定文件位置，客户端无关，不生成任何插件专属入口。"""
     return {"vault": str(target), "agents": str(target / "AGENTS.md"), "profile": str(target / "research-profile.json"),
             "copilot_skill": str(target / ".agents/skills/ai-paper-copilot/SKILL.md"),
             "setup_skill": str(target / ".agents/skills/ai-paper-setup/SKILL.md"),
-            "entry": str(target / ENTRY_NAME) if include_entry else None,
             "setup_state": str(target / STATE_NAME)}
 
 
@@ -346,29 +315,6 @@ def copy_selected(source, destination, inventory):
         shutil.copyfile(str(original), str(copied))
         if file_hash(copied) != row["sha256"]:
             raise SetupError("SOURCE_CHANGED", "源文件在预检后发生变化，已停止，目标尚未发布。")
-
-
-def entry_text(paths):
-    # 此正文可直接作为插件内自定义 SKILL.md，必须包含可发现的 YAML 元信息。
-    # 后端、权限和安装进度会继续变化，只记录稳定路径并要求运行时读回，
-    # 不把初次文件准备时的选择固化成长期规则。
-    return ("---\n"
-            "name: research-vault\n"
-            "description: 在已绑定的正式科研 Vault 整理论文笔记或推进研究时使用；先读取本库规则与当前配置，保护人工内容。\n"
-            "---\n\n"
-            "# 科研 Vault 的 Agent 入口\n\n"
-            "操作此正式 Vault 前，依次读取以下实际文件：\n\n"
-            "1. `" + paths["agents"] + "`\n"
-            "2. `" + paths["profile"] + "`\n"
-            "3. `" + paths["copilot_skill"] + "`\n\n"
-            "这些路径已按本库位置展开；此文件只供插件内 Codex bridge 使用，未自动写入 Zotero。\n\n"
-            "后续安装和连接配置使用 `$ai-paper-setup`，读取 `" + paths["setup_state"] + "` 后逐项核对真实状态。"
-            "状态文件缺失或与实际环境不符时记录待确认项，不猜测已完成或未完成。\n\n"
-            "解析后端、上传策略、资料目录与插件内 Codex 开关以当前 profile 为准，处理与上传遵守本库根规则和用户授权。"
-            "配置缺项时先澄清，不上传材料，不自行开启自动解析；若插件内 Codex 已停用，不继续该入口的写回。\n\n"
-            "插件原生笔记先按 profile 路径落入本库 inbox；正式笔记使用主 skill 受控更新器合并 AI 区，"
-            "保留 HUMAN 人工区与核查记录。使用本库实际配置的 Python 解释器，不猜测身份或核验状态。\n\n"
-            "必要路径不可用时停止本库写回，报告缺项，不退回套件模板或另一个同名 Vault。\n")
 
 
 def publish_noreplace(stage, target):
@@ -427,14 +373,13 @@ def create_missing_parents(parent, created=None):
 
 def prepare(args):
     checked = preflight(args)
-    target, paths = checked["target"], installation_paths(checked["target"], args.zotero_codex == "enabled")
+    target, paths = checked["target"], installation_paths(checked["target"])
     remaining = [name for name in PENDING_CHECKS]
     planned = ["复制完整初始 Vault（保留模板与 dotfile）", "安装 ai-paper-copilot 和 ai-paper-setup 的独立文件副本",
-               "记录后端、上传和插件内 Codex 选择，关闭自动解析", "生成 Agent 入口与 files_prepared 状态，后续逐项实测"]
+               "记录解析后端与上传策略，关闭自动解析", "生成 files_prepared 状态，后续逐项实测"]
     result = {"status": "preview", "paths": paths, "planned_steps": planned, "remaining_steps": remaining,
               "decisions": {"mineru_backend": args.mineru_backend, "upload_policy": args.upload_policy,
-                            "automatic_parse": False, "automatic_upload": False, "local_url": checked["profile"]["mineru"]["local_url"],
-                            "zotero_codex_app_server": args.zotero_codex},
+                            "automatic_parse": False, "automatic_upload": False, "local_url": checked["profile"]["mineru"]["local_url"]},
               "message": "预览未创建文件；--apply 仅准备离线文件，不代表环境安装或连接已经完成。"}
     if not args.apply:
         return result
@@ -459,15 +404,10 @@ def prepare(args):
                  "source": {"repo": str(checked["repo"]), "commit": checked["source_commit"],
                             "snapshot_sha256": checked["snapshot_sha256"], "commit_matches_snapshot": "not_checked"},
                  "decisions": {"mineru_backend": args.mineru_backend, "upload_policy": args.upload_policy,
-                               "automatic_parse": False, "automatic_upload": False, "local_url": checked["profile"]["mineru"]["local_url"],
-                               "zotero_codex_app_server": args.zotero_codex},
+                               "automatic_parse": False, "automatic_upload": False, "local_url": checked["profile"]["mineru"]["local_url"]},
                  "paths": paths, "checks": checks,
                  "note": "只完成离线文件准备；目录存在不等于依赖、插件、服务、连接或论文样本已经安装并验证。"}
         (stage / STATE_NAME).write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        # 只有用户明确启用 Zotero 内 Codex，才生成供插件读取的绝对路径桥接文件。
-        # disabled/unconfigured 不创建该文件，避免把可选功能伪装成基础依赖。
-        if args.zotero_codex == "enabled":
-            (stage / ENTRY_NAME).write_text(entry_text(paths), encoding="utf-8")
         # 发布前再次检查父路径；目标是否出现最终由内核的排他 rename 原子裁决。
         no_symlink_segments(target.parent)
         publish_noreplace(stage, target)
@@ -500,8 +440,6 @@ def main(argv=None):
     parser.add_argument("--vault", required=True, help="用户明确指定的新正式 Vault 绝对路径，可使用 ~")
     parser.add_argument("--repo", default=str(Path(__file__).resolve().parents[3]), help="原始套件仓库路径")
     parser.add_argument("--mineru-backend", choices=("cloud", "local", "unconfigured"), default="unconfigured")
-    parser.add_argument("--zotero-codex", choices=ZOTERO_CODEX_CHOICES, default="unconfigured",
-                        help="是否启用 LLM-for-Zotero 内的 Codex App Server；不使用 Zotero 内对话时保持 disabled")
     parser.add_argument("--upload-policy", choices=("ask_before_upload", "public_papers_only"), default="ask_before_upload")
     parser.add_argument("--local-url", default="http://127.0.0.1:8000", help="不带凭据的本地或自托管 MinerU HTTP(S) 地址")
     parser.add_argument("--apply", action="store_true", help="执行离线文件准备；默认只预览")
