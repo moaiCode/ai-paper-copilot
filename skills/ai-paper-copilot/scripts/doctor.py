@@ -162,6 +162,37 @@ def probe(url):
         return False
 
 
+VERSION_RE = re.compile(r'^\s+version:\s*"?([^"\n]+?)"?\s*$', re.M)
+LEGACY_ENTRY = "research-vault-entry.md"
+
+
+def skill_version(directory):
+    """读取已安装 SKILL.md 的版本；只解析顶部元信息。"""
+    path = Path(directory) / "SKILL.md"
+    if not path.is_file():
+        return None
+    head = "\n".join(path.read_text(encoding="utf-8", errors="replace").splitlines()[:40])
+    match = VERSION_RE.search(head)
+    return match.group(1).strip() if match else None
+
+
+def legacy_findings(vault, profile):
+    """只报告旧版产物是否存在，不回显其他配置值。"""
+    findings = []
+    if (Path(vault) / LEGACY_ENTRY).exists():
+        findings.append(LEGACY_ENTRY)
+    if (Path(vault) / ".agents" / "skills" / "research-vault").exists():
+        findings.append("旧 skill 目录")
+    node = profile
+    for part in ("integrations", "llm_for_zotero", "codex_app_server"):
+        if not isinstance(node, dict) or part not in node:
+            break
+        node = node[part]
+    else:
+        findings.append("profile 旧字段")
+    return findings
+
+
 def inspect(vault):
     checks = []
     def add(name, status, message, required=False, **details):
@@ -179,6 +210,25 @@ def inspect(vault):
         add("PyYAML", "verified", "安全 YAML 解析器 " + yaml.__version__, True)
     except ImportError:
         add("PyYAML", "missing", "在虚拟环境中安装 skill 的 requirements.txt。", True)
+
+    interpreter = Path(sys.executable).resolve()
+    venv_root = (Path(vault) / ".venv").resolve()
+    in_venv = interpreter == venv_root or venv_root in interpreter.parents
+    add("Python 解释器", "verified" if in_venv else "configured",
+        "使用库内 .venv。" if in_venv else "当前解释器不在库内 .venv；可用 setup_env.py 统一环境。",
+        venv=in_venv, executable=str(interpreter))
+
+    versions = {name: skill_version(Path(vault) / ".agents" / "skills" / name)
+                for name in ("ai-paper-copilot", "ai-paper-setup")}
+    missing = [name for name, version in versions.items() if version is None]
+    add("已安装 skill 版本", "missing" if missing else "configured",
+        "未找到：{}".format("、".join(missing)) if missing else
+        "、".join("{} {}".format(name, version) for name, version in versions.items()),
+        versions=versions)
+    findings = legacy_findings(vault, profile)
+    add("旧版入口清理", "needs_attention" if findings else "verified",
+        "发现旧版产物：{}；可用 sync_skills.py --clean-legacy 清理。".format("、".join(findings))
+        if findings else "未发现 2.0.x 遗留入口。", findings=findings)
 
     for app in ("Zotero", "Obsidian"):
         exists = (Path("/Applications") / (app + ".app")).is_dir()

@@ -163,6 +163,20 @@ class DoctorTests(unittest.TestCase):
                 doctor.validate_service_url(value, "api", local_only=True)
             self.assertNotIn("secret", str(exc.exception))
 
+    def test_installed_skill_versions_and_legacy_are_reported(self):
+        for name, version in (("ai-paper-copilot", "2.2.0"), ("ai-paper-setup", "1.2.0")):
+            directory = self.vault / ".agents/skills" / name
+            directory.mkdir(parents=True)
+            (directory / "SKILL.md").write_text(
+                "---\nname: {}\nmetadata:\n  version: \"{}\"\n---\n".format(name, version),
+                encoding="utf-8")
+        checks = self.checks()
+        self.assertEqual(checks["已安装 skill 版本"]["status"], "configured")
+        self.assertEqual(checks["已安装 skill 版本"]["versions"]["ai-paper-copilot"], "2.2.0")
+        self.assertEqual(checks["旧版入口清理"]["status"], "verified")
+        (self.vault / "research-vault-entry.md").write_text("旧入口", encoding="utf-8")
+        self.assertEqual(self.checks()["旧版入口清理"]["status"], "needs_attention")
+
     def test_inspect_never_changes_fixture_inputs(self):
         self.write_prefs({doctor.MINERU_MODE_PREF: "local", doctor.AUTO_PARSE_PREF: True})
         before = {p: p.read_bytes() for p in self.root.rglob("*") if p.is_file()}

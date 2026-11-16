@@ -164,6 +164,19 @@ export CANDIDATE_PATH="${VAULT_ROOT}/06inbox/候选笔记.md"
 
 先读错误对象、路径及原因，再修最小范围。没有论文的新库可以结构合格；`review_status: unreviewed` 也不等于文件非法。校验器不是论文质量评审或引用真实性的替代品。
 
+### 摘要卡定位：note_digest.py
+
+读长笔记前先取摘要卡，避免整篇加载；它是导航，不是证据，引用前回原文核对。
+
+```bash
+# 输出 front matter 要点、claims、小节标题与行号、AI/HUMAN 分区；不改文件。
+"${PYTHON_BIN}" \
+  "${SKILL_ROOT}/scripts/note_digest.py" \
+  --vault "${VAULT_ROOT}" "02vault/实际笔记.md" --json
+```
+
+拿到行号后按小节定向读取，单文件每轮默认不超过 200 行；同一文件未变化不重复读。`--json` 便于程序筛选，直接阅读时省略即得紧凑文本。
+
 ## 4. 文献笔记字段与分区
 
 使用 Vault 的 `templates/` 模板。字段含义、来源和合法状态见 [模板元数据与填写契约](skills/ai-paper-copilot/references/template-metadata.md)；以下示例只展示核心结构，不是一篇已经核验的论文：

@@ -17,6 +17,8 @@
 - 如果当前 Agent 有 Computer Use，应让它处理打开应用、切换 Vault、填写非敏感路径、点击测试/重载和读回 GUI 设置；CLI 负责文件、依赖、校验和状态。Token、登录、系统权限、删除/覆盖和 PDF 上传仍由用户接管。
 - 全文转换按 profile 的首选后端与本篇处理授权执行；云端上传遵守上传政策。拒绝、暂停、失败或质量不足都不自动授权另一方式：切换前让用户选择具体替代方式，已有明确备用顺序时按其条件执行。`Paused` 原因未明不等于失败，不自动改本地或重传；本地 MinerU 与通用 PDF 提取应区分。
 - `setup_vault.py` 默认只预览；`--apply` 只准备本地文件，不安装软件、不读取真实 Zotero、不上传 PDF，也不接收 Token。
+- 依赖用 `setup_env.py` 预览后 `--apply` 创建库内 `.venv`；升级用 `sync_skills.py` 比较并备份更新两个 skill，`--clean-legacy` 清理旧入口与旧 profile 字段。
+- 节省 token：先用 `note_digest.py` 取 front matter、claims 与小节行号，再定向读原文；摘要卡只作导航，引用前回原文核对。
 - 真实插件、登录、MCP、MinerU 和论文样本必须逐项检查，不能因为文件已复制就宣称全部安装完成。
 
 ## 公开资源

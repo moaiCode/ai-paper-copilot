@@ -48,3 +48,24 @@ LLM-for-Zotero 可以使用标准模型提供商、本地 OpenAI-compatible 模�
 - 若在插件内使用 Agent，其运行目录由插件管理，不应假定它等于 Vault。主路径让独立主会话直接工作在 Vault；要从插件调用 Agent，先确认实际 cwd 和技能路径。
 - 其他 Agent 使用同一份 Vault 规则正文，按各自支持的项目入口加载；不能声称所有 Agent 自动读取 `AGENTS.md`。需要 Claude Code 时使用简短 `CLAUDE.md` 入口指向 `AGENTS.md`，具体导入语法以其当前官方文档核实；不复制两份会漂移的科研规则。
 - 技能说明流程，MCP/插件提供能力；安装 skill 不会自动安装外部程序或获得外部账号授权。
+
+### 客户端规则与技能发现
+
+同一份 Vault 只保留一套科研规则正文（根 `AGENTS.md`）和一套项目技能（`.agents/skills/`）。客户端差异只影响“从哪里读”，不复制第二份会漂移的规则。下表按常见能力归类，具体语法以客户端当前官方文档为准。
+
+| 客户端类型 | 规则入口 | 技能发现 | 验证方式 |
+|---|---|---|---|
+| 直接读取 `AGENTS.md` 的客户端 | Vault 根 `AGENTS.md`（从库根启动） | 读取 `.agents/skills/ai-paper-copilot/SKILL.md` | 新会话询问它实际读到的规则文件与技能路径 |
+| Claude Code | 根 `CLAUDE.md` 用一行 `@AGENTS.md` 导入；不支持导入时写“先读 AGENTS.md” | 按其文档确认项目技能目录；不支持时在会话中显式给出 SKILL.md 路径 | 新会话确认已加载规则；技能路径可读 |
+| Cursor | 项目规则目录或根规则文件；支持时指向 `AGENTS.md` | 无原生技能机制时按路径读取 SKILL.md | 规则生效；技能文件可读 |
+| 仅聊天、无项目发现的客户端 | 手动把 Vault 设为工作目录并让 Agent 先读 `AGENTS.md` | 手动给出 SKILL.md 路径 | 首轮确认库根与 profile |
+| 插件内 Agent | 由插件管理的 cwd 决定，不能假定等于 Vault | 先读回真实 cwd 与技能路径 | 打印 cwd 并核对是否指向正式库 |
+
+Claude Code 的入口文件保持最小，避免复制规则：
+
+```markdown
+# 项目规则
+@AGENTS.md
+```
+
+若客户端不支持 `@` 导入，改为一行“开始任务前先完整读取本目录 AGENTS.md”，不要粘贴整份规则。不要在 `.cursor/rules`、`CLAUDE.md` 中维护与 `AGENTS.md` 不同的科研约定；发现规则分叉时以 `AGENTS.md` 为准并删除重复副本。

@@ -28,7 +28,7 @@
 
 - `local_files`：根规则、profile、目录、两份项目 skill 和模板已核对。空库结构通过不等于外部环境可用。
 - `python_dependencies`：正式库所选解释器能导入依赖并运行脚本，不能用另一个环境代替。
-- `obsidian`、`zotero_plugins`、`agent_runtime`：分别记录实际安装、配置与发现情况；仅“应用存在”不足以标为功能已验证。
+- `obsidian`、`zotero_plugins`、`agent_runtime`：分别记录实际安装、配置与发现情况；仅“应用存在”不足以标为功能已验证。`agent_runtime` 的验收标准：在正式库根启动的新会话能发现两个项目 skill、读到根 `AGENTS.md` 与 `research-profile.json`，并成功运行一条只读脚本（如 `validate_vault.py --vault <库> --json`）；证据记录客户端、cwd、命令与结果。
 - `mineru`、`connections`：明确验证的是连接还是解析；主 Agent 会话、API 与 MCP 分别核对。Token 测试成功不能代替全文图文质量检查。
 - `sample_validation`：仅在具体授权的论文确实处理并检查后更新，记录文献/附件身份与产物位置。人工核查状态继续保存在笔记中，不由安装进度代填。
 

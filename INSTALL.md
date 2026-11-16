@@ -52,11 +52,13 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 
 **已有库不运行新库创建器。**按 00 的增量流程先备份、比较根规则/profile/`templates/`/同名 skill，再合并必要内容并验证；不覆盖用户笔记，不为“续装”重建目录。仅安装 skill 的请求也不扩展成新建完整 Vault。
 
+**升级已部署库**用 `sync_skills.py --vault <正式库> --repo <源码> --json` 预览两个 skill 的版本与文件差异，确认后加 `--apply`；旧版入口用 `--clean-legacy` 清理（先备份 profile）。升级后重跑 `setup_env.py`、结构校验与已授权的 `doctor.py`，并重开客户端加载新技能。
+
 ## 3. 按未完成项继续
 
 读取正式库的 `setup-state.json`，按安装 skill 的[状态约定](skills/ai-paper-setup/references/setup-state.md)维护检查项与简短证据。续装时优先检查已完成项是否仍有效，继续 pending 项；不重复复制、重置 Token 或重装已可用的组件。仅文件准备完成即可交付该范围，其余项如实保留待办。
 
-- 在正式库的独立虚拟环境安装主 skill 的 `requirements.txt`，验证解释器与脚本实际可用。
+- 在正式库的独立虚拟环境安装主 skill 的 `requirements.txt`：先预览再执行 `setup_env.py --vault <正式库> --json` / `--apply`，确认 `import yaml` 成功；支持 Python 3.9–3.13。
 - 按 00 核对正式库根 `AGENTS.md`、profile 全部字段、Obsidian 库入口、主 Agent 工作目录和技能发现。主 skill 为 `ai-paper-copilot`，安装/续装用 `ai-paper-setup`。
 - 检查已有 Zotero、Connector、BBT、LLM-for-Zotero，缺项再从官方来源处理；可选插件只在有需求时增加。
 - 把 LLM 笔记根、临时输出与图片位置绑定到正式库。主工作由用户在正式 Vault 中启动的 Agent 会话承担；不同客户端的技能发现、MCP 和权限各自核对，不能假设跨会话共享能力。

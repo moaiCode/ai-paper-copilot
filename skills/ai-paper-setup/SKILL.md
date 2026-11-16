@@ -2,7 +2,7 @@
 name: ai-paper-setup
 description: 通过对话安装、接入或继续配置 Zotero、Obsidian 与 Agent 的 ai-paper-copilot 科研工作流。适用于安装这个项目、初始化正式科研库、接入已有 Vault、继续安装或排查部署缺项；日常论文阅读使用 ai-paper-copilot。
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   language: zh-CN
 ---
 
@@ -42,6 +42,7 @@ Computer Use 是减少点击的执行能力，不是新的授权来源。它不�
 - 它准备完整模板、主 skill 与本安装 skill、profile 和 `setup-state.json`，不生成任何客户端专属入口。成功仅表示 `files_prepared`，依赖、插件、连接和样本仍需完成。
 - 已有目录拒绝自动创建/覆盖。接入已有库先备份并比较 AGENTS/profile/templates/同名 skill，按 00 增量合并；保护人工笔记和原有规则。仅安装 skill 时不擅自创建完整科研库。
 - 已部署副本不必再次运行新库创建器。需要源码脚本时使用已确认的仓库或重新取得来源，不把正式库的 `.agents` 误作源码根。
+- 依赖用 `setup_env.py --vault <库> --json` 预览，确认后加 `--apply` 创建 `.venv` 并校验；升级用 `sync_skills.py --vault <库> --repo <源码> --json` 比较两个 skill，`--apply` 前自动备份，`--clean-legacy` 清理旧入口与旧 profile 字段。需要 Python 3.9–3.13。
 
 ## 工具与验收
 
