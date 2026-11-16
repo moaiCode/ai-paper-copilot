@@ -66,7 +66,7 @@ python3 -m venv .venv
 .venv/bin/python -m unittest discover -s skills/ai-paper-copilot/tests -v
 ```
 
-上面只读本地文件，不连接 Zotero、MinerU 或 Codex。空模板的 `empty_vault` 与 `needs_setup` 是可解释结果，不能为了让报告全绿向模板填真实文献或绑定插件。用户明确允许检查真实环境后，再对正式库运行 `doctor.py`；它会读取本机 Zotero 偏好、检查 Codex 登录并探测本地 API。科研结论、图表正确性和人工认可都需另行检查。
+结构检查只读取模板，单元测试写入隔离临时目录；它们不连接 Zotero、MinerU 或 Codex。空模板返回 `empty_vault` 是正常结果，不能为了让报告全绿向模板填真实文献或绑定插件。用户明确允许检查真实环境后，再对正式库运行 `doctor.py`；它会读取本机 Zotero 偏好、检查 Codex 登录并探测本地 API，未配齐时可能报告 `needs_setup`。科研结论、图表正确性和人工认可都需另行检查。
 
 正式数据的Git记录与PDF/Zotero备份分别安排。Git commit信息用中文，新增代码写清晰中文注释；不把密钥、登录态或大体积环境加入版本库。
 

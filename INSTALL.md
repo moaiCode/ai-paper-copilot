@@ -54,7 +54,7 @@ python3 skills/ai-paper-setup/scripts/setup_vault.py \
 
 ## 3. 按未完成项继续
 
-读取正式库的 `setup-state.json`。续装时优先检查已完成项是否仍有效，继续 pending 项；不重复复制、重置 Token 或重装已可用的组件。
+读取正式库的 `setup-state.json`，按安装 skill 的[状态约定](skills/ai-paper-setup/references/setup-state.md)维护检查项与简短证据。续装时优先检查已完成项是否仍有效，继续 pending 项；不重复复制、重置 Token 或重装已可用的组件。仅文件准备完成即可交付该范围，其余项如实保留待办。
 
 - 在正式库的独立虚拟环境安装主 skill 的 `requirements.txt`，验证解释器与脚本实际可用。
 - 按 00 核对正式库根 `AGENTS.md`、profile 全部字段、Obsidian 库入口、主 Agent 工作目录和技能发现。主 skill 为 `ai-paper-copilot`，安装/续装用 `ai-paper-setup`。

@@ -348,18 +348,27 @@ def copy_selected(source, destination, inventory):
             raise SetupError("SOURCE_CHANGED", "源文件在预检后发生变化，已停止，目标尚未发布。")
 
 
-def entry_text(paths, args):
-    return ("# 科研 Vault 的 Agent 入口\n\n"
+def entry_text(paths):
+    # 此正文可直接作为插件内自定义 SKILL.md，必须包含可发现的 YAML 元信息。
+    # 后端、权限和安装进度会继续变化，只记录稳定路径并要求运行时读回，
+    # 不把初次文件准备时的选择固化成长期规则。
+    return ("---\n"
+            "name: research-vault\n"
+            "description: 在已绑定的正式科研 Vault 整理论文笔记或推进研究时使用；先读取本库规则与当前配置，保护人工内容。\n"
+            "---\n\n"
+            "# 科研 Vault 的 Agent 入口\n\n"
             "操作此正式 Vault 前，依次读取以下实际文件：\n\n"
             "1. `" + paths["agents"] + "`\n"
             "2. `" + paths["profile"] + "`\n"
             "3. `" + paths["copilot_skill"] + "`\n\n"
             "这些路径已按本库位置展开；此文件只供插件内 Codex bridge 使用，未自动写入 Zotero。\n\n"
-            "后续安装和连接配置使用 `$ai-paper-setup`，读取 `" + paths["setup_state"] + "` 后逐项核对真实状态。\n"
-            "当前仅完成离线文件准备，依赖、应用、插件、Agent、转换服务与样本验证仍须分别配置和验证。\n\n"
-            "MinerU 后端选择：`" + args.mineru_backend + "`；上传策略：`" + args.upload_policy + "`。\n"
-            "Zotero 内 Codex App Server：`" + args.zotero_codex + "`。\n"
-            "自动解析保持关闭；未选择后端或缺少授权时先澄清，不上传材料，不猜测服务可用。\n")
+            "后续安装和连接配置使用 `$ai-paper-setup`，读取 `" + paths["setup_state"] + "` 后逐项核对真实状态。"
+            "状态文件缺失或与实际环境不符时记录待确认项，不猜测已完成或未完成。\n\n"
+            "解析后端、上传策略、资料目录与插件内 Codex 开关以当前 profile 为准，处理与上传遵守本库根规则和用户授权。"
+            "配置缺项时先澄清，不上传材料，不自行开启自动解析；若插件内 Codex 已停用，不继续该入口的写回。\n\n"
+            "插件原生笔记先按 profile 路径落入本库 inbox；正式笔记使用主 skill 受控更新器合并 AI 区，"
+            "保留 HUMAN 人工区与核查记录。使用本库实际配置的 Python 解释器，不猜测身份或核验状态。\n\n"
+            "必要路径不可用时停止本库写回，报告缺项，不退回套件模板或另一个同名 Vault。\n")
 
 
 def publish_noreplace(stage, target):
@@ -458,7 +467,7 @@ def prepare(args):
         # 只有用户明确启用 Zotero 内 Codex，才生成供插件读取的绝对路径桥接文件。
         # disabled/unconfigured 不创建该文件，避免把可选功能伪装成基础依赖。
         if args.zotero_codex == "enabled":
-            (stage / ENTRY_NAME).write_text(entry_text(paths, args), encoding="utf-8")
+            (stage / ENTRY_NAME).write_text(entry_text(paths), encoding="utf-8")
         # 发布前再次检查父路径；目标是否出现最终由内核的排他 rename 原子裁决。
         no_symlink_segments(target.parent)
         publish_noreplace(stage, target)

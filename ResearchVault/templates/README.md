@@ -1,75 +1,43 @@
-# templates：模板与元数据说明
+# 模板与元数据速查
 
-这里保存可复制到 Obsidian Vault 的页面模板。模板使用中文正文，保留英文术语、公式和原文；YAML frontmatter 是给 Obsidian、Dataview 和脚本读取的最小索引，不是论文内容的替代品。
+本目录保留 7 份核心模板：精读笔记、主题综合、研究问题、项目状态、实验设计、实验运行和投稿检查。元数据用于检索、链接与恢复工作；复杂分析写正文，不为填满字段猜测信息。
 
-## 使用约定
+## 怎么选模板
 
-- `templates/` 是模板目录，文件名可以按个人习惯调整，但 `type`、身份字段、证据状态和 AI/HUMAN 分区要保留。`ResearchVault/templates/` 应与本目录同步。
-- `{{...}}` 是创建页面时要替换的占位符；模板本身可以保留占位符，正式笔记不应保留。
-- 页面级 `evidence_status` 只表示该页引用材料的覆盖范围；文献页 `claims[].verification` 才表示某一条主张是否核查。二者不能互相推断。
-- `source_notes`、`related` 和 `aliases` 保存稳定链接或笔记名，不复制整篇原文。来源应回到 Zotero 条目、PDF/全文资料包或实验原始记录。
-- AI 只能维护 `<!-- AI:START -->` 与 `<!-- AI:END -->` 之间的内容；人工核查、判断和修改保留在 HUMAN 区。AI 内容实质变化时，相关主张回到待核查状态。
+| 任务 | 模板 | 保存的成果 |
+|---|---|---|
+| 阅读一篇论文 | 精读笔记 | 单篇理解、核心 claim、原文位置与人工核查 |
+| 综合多篇材料 | 主题综合 | 可比较的证据、分歧、限定条件与下一步 |
+| 收敛候选问题 | 研究问题卡 | 可证伪问题、最近工作、最小验证与用户决定 |
+| 接续一个课题 | 项目状态 | 当前目标、证据、已有产物、资源与下一步 |
+| 准备实验 | 实验设计单 | 对照、协议、预算与事先约定的判定条件 |
+| 记录实际运行 | 实验运行记录 | 版本、命令、真实结果、失败与结论 |
+| 检查稿件 | 投稿前检查表 | 目标要求、引用/图表/编译、人工复核与待办 |
 
-## 通用元数据字段
+主题、概念和方法可以按问题组织在 `01knowledge/`，先使用同一综合模板并调整正文。无需先建立固定分类、计数或看板。模板仅在实际任务需要时使用，不因一篇论文自动创建全部页面。
 
-| 字段 | 含义与填写规则 |
-| --- | --- |
-| `type` | 页面机器类型，例如 `literature-note`、`knowledge-page`、`experiment-plan`；供脚本路由，不表示质量。 |
-| `knowledge_kind` | 知识页子类型：`theme`、`concept`、`method`、`relation`、`controversy` 或 `synthesis`。仅知识页使用。 |
-| `title` | 页面显示标题；文献使用规范题名，知识页使用稳定概念名。 |
-| `aliases` | Obsidian 检索或旧称列表；没有别名时保留空列表 `[]`。 |
-| `tags` | 少量导航标签；标签不能代替来源或研究结论。 |
-| `created` / `updated` | 页面创建日期 / 最近一次内容或元数据更新日期，使用 `YYYY-MM-DD`。 |
-| `status` | 页面工作状态，例如 `exploring`、`active`、`draft`、`archived`；按模板约定使用，不代表证据质量。 |
-| `project` | 所属课题笔记或项目标识；尚未归属时留空字符串。 |
-| `evidence_count` | 页面实际引用的独立来源数量，是提醒用计数，不替代来源清单。 |
-| `evidence_status` | 页面证据覆盖：`fulltext_verified`（关键来源回到全文核查）、`note_only`（只依据笔记/摘要）、`mixed`（两者混合）。 |
-| `source_notes` | 支撑页面判断的笔记链接或 citekey 列表；每项应能追溯到具体材料。 |
-| `related` | 相关主题、概念、方法或项目链接；关系应在正文说明，不凭链接本身推断关联。 |
-| `relation_type` | 关系页的证据角色：`direct`、`mechanism`、`conditional`、`contextual` 或 `related`；没有证据时保持 `related`。 |
-| `research_questions` | 项目状态页关联的研究问题卡列表；只列实际存在的页面。 |
-| `stage` | 项目所处阶段，如 `exploration`、`validation`、`writing`；与实验结果状态分开。 |
-| `venue` | 投稿检查对应的目标期刊、会议或其他 venue；空值表示尚未选择。 |
-| `library_scope` | Zotero 库身份，如 `users/0` 或 `groups/<ID>`；与 `zotero_key` 共同确定条目。 |
-| `zotero_key` | Zotero 条目 key，必须是 8 位大写字母/数字；未知时临时笔记可留空。 |
-| `pdf_key` | 具体 PDF 附件 key；同一条目有多个附件时必须区分。 |
-| `citekey` | Better BibTeX 生成的写作引用键；不能用题名代替。 |
-| `fulltext_path` | Vault 内全文资料包的 `full.md` 相对路径；没有资料包时留空。 |
-| `material_status` | 材料完整度：`abstract`、`pdf` 或 `parsed`。它不表示科学结论已经正确。 |
-| `review_status` | 文献整体人工核查状态：`unreviewed`、`partial` 或 `reviewed`。脚本会依据 claims 检查一致性。 |
-| `claims` | 文献的少量核心主张列表；每项至少含 `id`、`text`、`source`、`verification`，可选 `quote`。 |
+## 有用的元数据
 
-## 文献页的摘要字段
+| 字段 | 用途与维护方式 |
+|---|---|
+| `type`、`title` | 固定页面类型与实际题名；`type` 用于脚本判断页面契约 |
+| `aliases`、`tags` | 别名和少量检索标签；没有时保留空列表 |
+| `created`、`updated` | 创建与实际内容更新日期；检查命令不改变日期 |
+| `project`、`status` / `stage` | 所属项目与推进状态，按用户决定更新，不表示科学结论已被证实 |
+| `authors`、`year`、`venue`、`doi`、`url` | 文献题录，从 Zotero/正式来源取得；未知时留空 |
+| `task`、`data_source`、`methodology` | 可选的任务、数据与方法索引，各用短语或一句话；细节放正文 |
+| `library_scope`、`zotero_key`、`pdf_key` | 库、父条目与附件身份；未知时不猜，正式归档前补齐所需身份 |
+| `citekey` | 真实 BBT 引用键；临时草稿可空，正式归档前补齐，与是否已有项目 `.bib` 分开 |
+| `fulltext_path`、`material_status` | 实际取得的材料及独立资料包路径；有 PDF 不必先转 Markdown 才能阅读 |
+| `claims`、`review_status` | 文献关键主张的出处与核验、整篇人工复核进度；不能由 AI 自授人工通过 |
+| `source_notes`、`related`、`related_notes` | 来源笔记与相关页面列表；链接做导航，具体判断仍需原文定位 |
+| `evidence_status` | 综合页/问题卡的材料覆盖：`note_only`、`mixed`、`fulltext_verified`；不代表用户已经认可结论 |
+| `research_questions`、`venue` | 项目关联的问题卡、投稿清单的实际目标 venue，按任务需要填写 |
 
-`精读笔记模板.md` 额外保留一组便于检索和快速比较的短字段。它们不是新的证据层，也不要求把复杂论文压缩成一句话；无法从材料可靠得到时留空或写“未披露”。
+## 填写与更新
 
-| 字段 | 含义 |
-| --- | --- |
-| `authors` / `year` | 作者列表 / 发表或版本年份；按 Zotero 题录填写。 |
-| `source` | 期刊、会议、预印本或官方来源名称。 |
-| `publication_type` | `journal`、`conference`、`preprint` 等题录类型；版本差异在正文说明。 |
-| `doi` / `url` | DOI 或可复核的公开来源链接。 |
-| `keywords` | Zotero/AI 建议的关键词列表；用于检索和导航，不代替 `tags` 或知识页。 |
-| `theme` | 一句话概括论文主题。 |
-| `study_area` | 研究对象、任务、研究区或样本范围。 |
-| `data_source` | 数据来源、样本和时间范围。 |
-| `methodology` | 核心方法、模型或识别策略。 |
-| `core_variable` | 核心变量、指标或概念。 |
-| `key_finding` | 最关键的研究发现，避免超出证据强度。 |
-| `relevance` | 对当前研究的启发或相关性；尚未形成判断时写候选用途。 |
-| `related_notes` | 文献页的相关笔记链接；用于导航，不替代 claims 的原文定位。 |
-
-## 知识页的六种类型
-
-| `knowledge_kind` | 适合记录的内容 | 重点检查 |
-| --- | --- | --- |
-| `theme` | 一个方向或主题的边界与证据地图 | 范围、纳入标准、研究空白 |
-| `concept` | 定义、边界、测量和易混淆概念 | 不把术语相似当作概念相同 |
-| `method` | 方法机制、适用条件和诊断 | 假设、失败模式、常见误用 |
-| `relation` | 两个概念/方法/结果之间的关系 | 区分直接、机制、条件、情境和相关关系 |
-| `controversy` | 文献分歧、可能原因和可改变判断的证据 | 不把单篇论文结论写成共识 |
-| `synthesis` | 围绕一个问题的跨文献综合 | 设定可比性、冲突、证据强弱和下一步 |
-
-知识页模板共享 `title`、`aliases`、`tags`、`status`、`evidence_count`、`evidence_status`、`source_notes`、`related` 和 `updated`。正文应包含本套件定义的证据账本、边界、当前判断、缺口和来源追踪；页面只在有明确判断和可追溯证据时创建。
-
-设计来源与原创边界：我在 2026-11-16 核对了 [Zotero Analytical Workflow Skills](https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills)，只参考其知识组织问题和信息架构，不复制其模板正文、章节措辞或文件布局。本目录的 Zotero 身份、全文资料包、claim 核验、人工内容保护、方向收敛和实验衔接均为本套件独立设计；本 README 与套件内 `skills/ai-paper-copilot/references/template-metadata.md` 是本套件的字段契约。
+- `{{...}}` 是创建时替换的占位符；正式页面不保留占位符。YAML 注释解释含义，不属于值。
+- 只有论文身份、材料和核心证据字段是正式文献的契约；不要把可选检索字段都变成必填。未知题录不编造，未披露的方法/数据在正文明确说明。
+- 文献笔记和主题综合用 AI/HUMAN 分区。后续使用 `update_ai_note.py` 预览并更新 AI 区及允许字段，人工区与其他正文保持原样；脚本不代替科学核查。
+- 文献内容变化会复位 `review_status`；知识页变化会提示 `human_review_required`，旧人工记录继续保留。项目状态、运行结果与投稿决定按真实事实单独更新，不借该脚本重写。
+- 详细 Agent 契约位于安装后 `.agents/skills/ai-paper-copilot/references/template-metadata.md`。原有自定义元数据可保留；不为升级批量改写旧笔记。

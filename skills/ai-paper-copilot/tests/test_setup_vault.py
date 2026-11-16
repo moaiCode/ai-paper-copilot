@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 """离线安装助手的隔离行为测试，不部署真实库，不访问应用、网络或凭据。
 
-每项测试创建独立的最小套件副本和目标路径；真实发布测试只发生在临时目录。
+单元场景使用独立最小套件副本；发行包集成场景只读真实源码并写入临时目标。
+所有真实发布测试只发生在临时目录，不配置外部工具。
 """
 
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -16,6 +18,9 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from vault_utils import read_note
 
 
 SCRIPT = Path(__file__).resolve().parents[2] / "ai-paper-setup/scripts/setup_vault.py"
@@ -154,7 +159,7 @@ class SetupVaultTests(unittest.TestCase):
         self.assertEqual(profile["mineru"]["local_url"], "https://mineru.example.org/api")
         self.assertFalse(profile["mineru"]["automatic_parse"])
 
-    def test_state_and_entry_report_only_files_prepared(self):
+    def test_state_records_file_preparation_and_enabled_entry_is_a_valid_bridge(self):
         git = self.repo / ".git"
         git.mkdir()
         (git / "HEAD").write_text("a" * 40 + "\n", encoding="utf-8")
@@ -168,10 +173,21 @@ class SetupVaultTests(unittest.TestCase):
         self.assertEqual(state["source"]["commit"], "a" * 40)
         self.assertEqual(state["source"]["commit_matches_snapshot"], "not_checked")
         entry = (self.target / "research-vault-entry.md").read_text(encoding="utf-8")
-        for relative in ("AGENTS.md", "research-profile.json", ".agents/skills/ai-paper-copilot/SKILL.md"):
-            self.assertIn(str(self.target / relative), entry)
+        # 验证 skill 可发现性和真实文件引用，不仅检查正文是否出现某段措辞。
+        metadata, body, _ = read_note(entry)
+        self.assertEqual(metadata["name"], "research-vault")
+        self.assertIsInstance(metadata["description"], str)
+        self.assertTrue(metadata["description"].strip())
+        referenced = {Path(value) for value in re.findall(r"`([^`]+)`", body) if Path(value).is_absolute()}
+        expected = {self.target / relative for relative in (
+            "AGENTS.md", "research-profile.json", ".agents/skills/ai-paper-copilot/SKILL.md", "setup-state.json")}
+        self.assertEqual(referenced, expected)
+        self.assertTrue(all(path.is_file() for path in referenced))
+        self.assertEqual(json.loads((self.target / "research-profile.json").read_text())["mineru"]["backend"], "cloud")
+        # 易变化状态只由 profile/state 维护，bridge 不再保存初次安装选择的副本。
+        for value in ("cloud", "ask_before_upload", "files_prepared", "enabled"):
+            self.assertNotIn(value, body)
         self.assertNotIn(str(self.template / "AGENTS.md"), entry)
-        self.assertIn("Zotero 内 Codex App Server：`enabled`", entry)
 
     def test_unselected_mineru_is_not_marked_ready(self):
         setup.prepare(self.args(apply=True))
@@ -426,6 +442,68 @@ class SetupVaultTests(unittest.TestCase):
         self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
         self.assertEqual(json.loads(process.stdout)["status"], "preview")
         self.assertFalse(self.target.parent.exists())
+
+    def test_real_release_preview_apply_and_installed_validator_work_together(self):
+        # 合成夹具负责失败分支；真实发行包演练验证两份 skill 和后续新增的
+        # 本地参考一起安装，避免夹具缺少真实资源仍使测试全部通过。
+        repo = SCRIPT.parents[3]
+        template = repo / "ResearchVault"
+        before = {path.relative_to(template).as_posix(): setup.file_hash(path)
+                  for path in template.rglob("*") if path.is_file()}
+        target = self.root / "发行包演练" / "ResearchVault"
+        command = [sys.executable, str(SCRIPT), "--repo", str(repo), "--vault", str(target),
+                   "--zotero-codex", "enabled", "--json"]
+        preview = subprocess.run(command, capture_output=True, text=True, check=False)
+        self.assertEqual(preview.returncode, 0, preview.stdout + preview.stderr)
+        self.assertEqual(json.loads(preview.stdout)["status"], "preview")
+        self.assertFalse(target.parent.exists())
+
+        created = subprocess.run(command + ["--apply"], capture_output=True, text=True, check=False)
+        self.assertEqual(created.returncode, 0, created.stdout + created.stderr)
+        self.assertEqual(json.loads(created.stdout)["status"], "created")
+        for name in setup.SKILL_NAMES:
+            source = repo / "skills" / name
+            installed = target / ".agents/skills" / name
+            inventory = setup.inspect_tree(source)
+            for relative in inventory["directories"]:
+                self.assertTrue((installed / relative).is_dir(), str(relative))
+            for row in inventory["files"]:
+                copied = installed / row["path"]
+                self.assertTrue(copied.is_file(), row["path"])
+                self.assertFalse(copied.is_symlink(), row["path"])
+                self.assertEqual(setup.file_hash(copied), row["sha256"], row["path"])
+            metadata, body, _ = read_note((installed / "SKILL.md").read_text(encoding="utf-8"))
+            self.assertEqual(metadata["name"], name)
+            # 只解析本地文件链接，远程安装依据不在测试中发出网络请求。
+            for link in re.findall(r"\]\(([^)\s]+)\)", body):
+                if "://" in link or link.startswith("#"):
+                    continue
+                self.assertTrue((installed / link.split("#", 1)[0]).is_file(), link)
+
+        state = json.loads((target / "setup-state.json").read_text(encoding="utf-8"))
+        self.assertEqual(state["stage"], "files_prepared")
+        self.assertEqual(state["checks"]["sample_validation"], "pending")
+        for actual in state["paths"].values():
+            if actual is not None:
+                self.assertTrue(Path(actual).exists(), actual)
+        read_note((target / "research-vault-entry.md").read_text(encoding="utf-8"))
+        # 执行安装副本中的结构校验器，只读文件；不使用 doctor，不探测
+        # 本机 Zotero/MCP，不连接解析服务，不以源脚本替代安装结果。
+        validator = target / ".agents/skills/ai-paper-copilot/scripts/validate_vault.py"
+        validated = subprocess.run([sys.executable, str(validator), "--vault", str(target), "--json"],
+                                   capture_output=True, text=True, check=False,
+                                   env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+        self.assertEqual(validated.returncode, 0, validated.stdout + validated.stderr)
+        report = json.loads(validated.stdout)
+        self.assertEqual(report["status"], "empty_vault")
+        self.assertEqual(report["notes"], 0)
+        self.assertEqual(report["errors"], 0)
+        self.assertFalse(report["content_verified"])
+        self.assertFalse(report["scientific_quality_verified"])
+        after = {path.relative_to(template).as_posix(): setup.file_hash(path)
+                 for path in template.rglob("*") if path.is_file()}
+        self.assertEqual(before, after)
+        self.assert_no_stage()
 
 
 if __name__ == "__main__":
